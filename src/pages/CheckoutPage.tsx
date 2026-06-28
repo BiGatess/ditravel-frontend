@@ -1,0 +1,105 @@
+import React, { useState } from 'react';
+import { useCart } from '../context/CartContext';
+import CartStep from '../components/checkout/CartStep';
+import PaymentStep from '../components/checkout/PaymentStep';
+import SuccessStep from '../components/checkout/SuccessStep';
+
+export default function CheckoutPage() {
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
+  const [contactInfo, setContactInfo] = useState({ name: '', phone: '', email: '' });
+  const [errors, setErrors] = useState({ name: '', phone: '', email: '' });
+
+  const { cartItems, updateQuantity, removeRow, totalItems, totalPrice } = useCart();
+
+  const handlePayment = () => {
+    let newErrors = { name: '', phone: '', email: '' };
+    let hasError = false;
+
+    if (!contactInfo.name.trim()) { newErrors.name = 'Vui lòng nhập họ tên'; hasError = true; }
+    if (!contactInfo.phone.trim()) { newErrors.phone = 'Vui lòng nhập số điện thoại'; hasError = true; }
+    if (!contactInfo.email.trim()) { newErrors.email = 'Vui lòng nhập email'; hasError = true; }
+
+    setErrors(newErrors);
+
+    if (hasError) return;
+
+    setIsProcessing(true);
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsProcessing(false);
+      setStep(3);
+    }, 3000);
+  };
+
+  const steps = [
+    { id: 1, name: 'Giỏ hàng' },
+    { id: 2, name: 'Thanh toán' },
+    { id: 3, name: 'Hoàn tất' }
+  ];
+
+  return (
+    <div className="bg-slate-50 min-h-screen pb-16 pt-8">
+      <div className="container mx-auto px-2 max-w-[1100px]">
+        {/* Timeline */}
+        <div className="mb-14 max-w-2xl mx-auto hidden md:block">
+          <div className="flex items-center justify-between relative">
+            <div className="absolute left-[15px] right-[15px] top-[14px] h-[3px]">
+              <div className="w-full bg-slate-200 h-full rounded-full relative overflow-hidden">
+                 <div 
+                   className="bg-[#ff5b00] h-full transition-all duration-500" 
+                   style={{ width: step === 1 ? '0%' : step === 2 ? '50%' : '100%' }} 
+                 />
+              </div>
+            </div>
+            {steps.map((s) => (
+               <div key={s.id} className="relative z-10 flex flex-col items-center">
+                 <div className={`w-[30px] h-[30px] rounded-full flex items-center justify-center font-bold text-[13px] transition-colors duration-500 ${step >= s.id ? 'bg-[#ff5b00] text-white' : 'bg-slate-200 text-slate-500'}`}>
+                   {s.id}
+                 </div>
+                 <span className={`absolute top-[38px] left-1/2 -translate-x-1/2 whitespace-nowrap text-[13px] font-medium transition-colors duration-500 ${step >= s.id ? 'text-slate-800' : 'text-slate-400'}`}>{s.name}</span>
+               </div>
+            ))}
+          </div>
+        </div>
+
+        {step === 1 && (
+          <CartStep 
+            cartItems={cartItems}
+            totalItems={totalItems}
+            totalPrice={totalPrice}
+            removeRow={removeRow}
+            updateQuantity={updateQuantity}
+            onNextStep={() => setStep(2)}
+          />
+        )}
+
+        {step === 2 && (
+          <PaymentStep 
+            contactInfo={contactInfo}
+            setContactInfo={setContactInfo}
+            errors={errors}
+            cartItems={cartItems}
+            totalPrice={totalPrice}
+            isProcessing={isProcessing}
+            onPrevStep={() => setStep(1)}
+            onNextStep={handlePayment}
+            setIsPaid={setIsPaid}
+          />
+        )}
+
+        {step === 3 && (
+          <SuccessStep 
+            isPaid={isPaid}
+            setIsPaid={setIsPaid}
+            contactInfo={contactInfo}
+            cartItems={cartItems}
+            totalPrice={totalPrice}
+          />
+        )}
+
+      </div>
+    </div>
+  );
+}
