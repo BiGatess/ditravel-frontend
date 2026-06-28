@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Khởi tạo một đối tượng Axios với cấu hình mặc định
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:8000/api', // Đường dẫn tới Backend của chúng ta
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api', // Đường dẫn tới Backend của chúng ta
   headers: {
     'Content-Type': 'application/json',
   },
