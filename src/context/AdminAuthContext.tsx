@@ -4,7 +4,7 @@ import axiosClient from '../api/axios';
 interface AdminAuthContextType {
   isAuthenticated: boolean;
   user: any;
-  login: (token: string) => Promise<void>;
+  login: (token: string) => Promise<any>;
   logout: () => void;
 }
 
@@ -20,10 +20,12 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       const res = await axiosClient.get('/auth/me');
       setUser(res.data);
       setIsAuthenticated(true);
+      return res.data;
     } catch (err) {
       localStorage.removeItem('admin_token');
       setIsAuthenticated(false);
       setUser(null);
+      return null;
     } finally {
       setIsInitializing(false);
     }
@@ -41,7 +43,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (token: string) => {
     localStorage.setItem('admin_token', token);
     setUser(null); // Clear old user immediately
-    await fetchUser();
+    return await fetchUser();
   };
 
   const logout = () => {

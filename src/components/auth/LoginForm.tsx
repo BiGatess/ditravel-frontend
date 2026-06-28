@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import axiosClient from '../../api/axios';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
@@ -9,8 +9,11 @@ export default function LoginForm() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
   const { login } = useAdminAuth();
+
+  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +43,7 @@ export default function LoginForm() {
     setErrors({});
     setApiError('');
     setIsLoading(true);
+    setIsSuccess(false);
 
     try {
       const formDataObj = new URLSearchParams();
@@ -53,15 +57,17 @@ export default function LoginForm() {
       });
       
       await login(res.data.access_token);
-      navigate('/');
+      setIsSuccess(true);
+      await wait(650);
+      navigate('/', { replace: true });
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
         setApiError(err.response.data.detail);
       } else {
         setApiError('Đăng nhập thất bại. Vui lòng kiểm tra lại email hoặc mật khẩu.');
       }
-    } finally {
       setIsLoading(false);
+      setIsSuccess(false);
     }
   };
 
@@ -120,10 +126,25 @@ export default function LoginForm() {
 
       <button 
         type="submit"
-        className="w-full bg-[#ff5b00] hover:bg-[#e05000] text-white font-bold h-[48px] rounded-[6px] transition-colors mt-6 flex items-center justify-center gap-2 group"
+        disabled={isLoading}
+        className="w-full bg-[#ff5b00] hover:bg-[#e05000] disabled:bg-[#ff8a45] disabled:cursor-wait text-white font-bold h-[48px] rounded-[6px] transition-all duration-200 mt-6 flex items-center justify-center gap-2 group shadow-sm hover:shadow-md active:scale-[0.98]"
       >
-        Đăng nhập
-        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        {isSuccess ? (
+          <>
+            <CheckCircle2 className="w-5 h-5" />
+            Đăng nhập thành công
+          </>
+        ) : isLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Đang đăng nhập...
+          </>
+        ) : (
+          <>
+            Đăng nhập
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </>
+        )}
       </button>
 
       <div className="mt-6 text-center text-sm">

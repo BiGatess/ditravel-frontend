@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAdminAuth();
+  const { login, logout } = useAdminAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +40,12 @@ export default function AdminLoginPage() {
       const token = response.data.access_token;
       
       // Lưu token vào Context và LocalStorage
-      await login(token);
+      const currentUser = await login(token);
+      if (!currentUser || currentUser.user_type !== 'ADMIN') {
+        logout();
+        setError('Tài khoản này chưa được cấp quyền quản trị.');
+        return;
+      }
       
       // Chuyển hướng vào trang Dashboard
       navigate('/admin/dashboard', { replace: true });
