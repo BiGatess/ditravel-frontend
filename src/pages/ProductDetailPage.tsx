@@ -8,16 +8,11 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useWishlist } from '../context/WishlistContext';
-import TicketBookingWidget from '../components/TicketBookingWidget';
 import PackageSelectionWidget from '../components/product/PackageSelectionWidget';
 import axiosClient from '../api/axios';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
-  
-  // Simulate checking if the current product is a ticket vs tour
-  // In a real app, this would come from the product API response
-  const isTicketType = false; // Show PackageSelectionWidget for this cruise
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   
   const [productData, setProductData] = useState<any | null>(null);
@@ -59,14 +54,21 @@ export default function ProductDetailPage() {
         const prodGallery = data.gallery || [];
         const placeGallery = data.place?.gallery || [];
         const combinedGallery = Array.from(new Set([...prodGallery, ...placeGallery]));
+        const activeTicketTypes = (data.ticket_types || []).filter((ticket: any) => ticket.is_active !== false);
+        const ticketPrices = activeTicketTypes
+          .map((ticket: any) => Number(ticket.price))
+          .filter((price: number) => price > 0);
+        const startingPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : Number(data.price || 0);
+        const startingTicket = activeTicketTypes.find((ticket: any) => Number(ticket.price) === startingPrice);
         
         setProductData({
           id: data.id,
           name: data.title,
           image: data.image || 'https://images.unsplash.com/photo-1544735716-3920e6e41540?w=1200&q=80',
-          price: Number(data.price),
+          price: startingPrice,
           description: data.description,
-          oldPrice: Number(data.price) * 1.2,
+          oldPrice: startingTicket?.original_price ? Number(startingTicket.original_price) : null,
+          startingTicketName: startingTicket?.name || '',
           highlights: data.highlights,
           terms: data.terms,
           cancellation_policy: data.cancellation_policy,
@@ -266,7 +268,7 @@ export default function ProductDetailPage() {
                  <div className="bg-white border border-[#e1e1e1] shadow-[0_5px_20px_rgba(0,0,0,0.08)] rounded-[8px] p-5">
                     <div className="text-[13px] text-slate-500 mb-1">Giá chỉ từ</div>
                     <div className="text-[#ff5b00] font-bold text-[24px] mb-5 tracking-tight">
-                      {productData.price.toLocaleString('vi-VN')} <span className="text-[18px] underline font-normal">đ</span> <span className="text-[13px] text-slate-500 font-normal">/ người lớn</span>
+                      {productData.price > 0 ? productData.price.toLocaleString('vi-VN') : 'Liên hệ'} {productData.price > 0 && <span className="text-[18px] underline font-normal">đ</span>} {productData.startingTicketName && <span className="text-[13px] text-slate-500 font-normal">/ {productData.startingTicketName}</span>}
                     </div>
                     <button 
                       onClick={() => {
@@ -303,11 +305,10 @@ export default function ProductDetailPage() {
         </div>
 
         {/* ROW 2: TICKET BOOKING WIDGET */}
-        {isTicketType ? (
-          <TicketBookingWidget />
-        ) : (
-          <PackageSelectionWidget ticketTypes={productData.ticket_types} />
-        )}
+        <PackageSelectionWidget
+          ticketTypes={productData.ticket_types}
+          product={{ id: productData.id, name: productData.name, image: productData.image }}
+        />
 
         {/* ROW 3: DESCRIPTION */}
         <div className="flex flex-col lg:flex-row gap-5 mb-8 items-start relative z-20">
@@ -426,4 +427,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-

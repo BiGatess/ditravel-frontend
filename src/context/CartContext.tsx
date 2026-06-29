@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export type CartItem = {
-  id: number;
+  id: string | number;
   name: string;
   date: string;
   type: string;
@@ -13,8 +13,8 @@ export type CartItem = {
 type CartContextType = {
   cartItems: CartItem[];
   setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
-  updateQuantity: (id: number, delta: number) => void;
-  removeRow: (id: number) => void;
+  updateQuantity: (id: string | number, delta: number) => void;
+  removeRow: (id: string | number) => void;
   totalPrice: number;
   totalItems: number;
   cartBadgeCount: number;
@@ -25,7 +25,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const updateQuantity = (id: number, delta: number) => {
+  const updateQuantity = (id: string | number, delta: number) => {
     setCartItems(curr => curr.map(item => {
       if (item.id === id) {
         return { ...item, quantity: Math.max(1, item.quantity + delta) };
@@ -34,7 +34,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }).filter(item => item.quantity > 0));
   };
 
-  const removeRow = (id: number) => {
+  const removeRow = (id: string | number) => {
     setCartItems(curr => curr.filter(item => item.id !== id));
   };
 

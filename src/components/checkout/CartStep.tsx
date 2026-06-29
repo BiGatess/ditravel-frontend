@@ -7,8 +7,8 @@ interface CartStepProps {
   cartItems: any[];
   totalItems: number;
   totalPrice: number;
-  removeRow: (id: string) => void;
-  updateQuantity: (id: string, delta: number) => void;
+  removeRow: (id: string | number) => void;
+  updateQuantity: (id: string | number, delta: number) => void;
   onNextStep: () => void;
 }
 

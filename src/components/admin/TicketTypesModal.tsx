@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit, Trash2, AlertTriangle, CheckCircle, Ticket } from 'lucide-react';
 import axiosClient from '../../api/axios';
 
-export default function TicketTypesModal({ product, onClose }: { product: any, onClose: () => void }) {
+type TicketTypesModalProps = {
+  product: any;
+  onClose: () => void;
+  onChanged?: () => void;
+};
+
+export default function TicketTypesModal({ product, onClose, onChanged }: TicketTypesModalProps) {
   const [ticketTypes, setTicketTypes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -35,9 +41,9 @@ export default function TicketTypesModal({ product, onClose }: { product: any, o
     }
   };
 
-  const handleOpenForm = (ticket: any = null) => {
+  const handleOpenForm = (ticket: any = null, defaultName = '') => {
     setEditingTicket(ticket);
-    setName(ticket?.name || '');
+    setName(ticket?.name || defaultName);
     setDescription(ticket?.description || '');
     setPrice(ticket?.price ? new Intl.NumberFormat('vi-VN').format(ticket.price) : '');
     setOriginalPrice(ticket?.original_price ? new Intl.NumberFormat('vi-VN').format(ticket.original_price) : '');
@@ -96,6 +102,7 @@ export default function TicketTypesModal({ product, onClose }: { product: any, o
       }
       
       fetchTicketTypes();
+      onChanged?.();
       handleCloseForm();
     } catch (err) {
       console.error(err);
@@ -107,11 +114,18 @@ export default function TicketTypesModal({ product, onClose }: { product: any, o
       try {
         await axiosClient.delete(`/ticket-types/${id}`);
         fetchTicketTypes();
+        onChanged?.();
       } catch (err) {
         console.error(err);
       }
     }
   };
+
+  const activeTicketPrices = ticketTypes
+    .filter(ticket => ticket.is_active !== false)
+    .map(ticket => Number(ticket.price))
+    .filter(price => price > 0);
+  const startingPrice = activeTicketPrices.length > 0 ? Math.min(...activeTicketPrices) : Number(product.price || 0);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -124,6 +138,9 @@ export default function TicketTypesModal({ product, onClose }: { product: any, o
               <Ticket className="w-5 h-5 text-[#ff5b00]" /> Quản lý Gói dịch vụ
             </h2>
             <p className="text-[13px] text-slate-500 mt-0.5">Sản phẩm: {product.title}</p>
+            <p className="text-[12px] text-slate-500 mt-1">
+              Giá từ đang dùng trên web: <span className="font-bold text-[#ff5b00]">{startingPrice > 0 ? `${startingPrice.toLocaleString('vi-VN')} đ` : 'Chưa có giá'}</span>
+            </p>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
@@ -133,14 +150,31 @@ export default function TicketTypesModal({ product, onClose }: { product: any, o
         <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
           {!isFormOpen ? (
             <>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-[14px] text-slate-700">Danh sách các gói hiện có</h3>
-                <button 
-                  onClick={() => handleOpenForm()}
-                  className="bg-[#0084ff] hover:bg-[#0073e6] text-white font-bold py-2 px-4 rounded-lg text-[13px] flex items-center gap-2 shadow-sm transition-colors"
-                >
-                  <Plus className="w-4 h-4" /> Thêm Gói mới
-                </button>
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
+                <div>
+                  <h3 className="font-bold text-[14px] text-slate-700">Danh sách các gói hiện có</h3>
+                  <p className="text-[12px] text-slate-500 mt-1">Mỗi dòng là một loại vé thật hiển thị ngoài trang chi tiết.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleOpenForm(null, 'Vé người lớn')}
+                    className="bg-white hover:border-[#0084ff] hover:text-[#0084ff] text-slate-700 border border-slate-200 font-bold py-2 px-3 rounded-lg text-[13px] flex items-center gap-2 shadow-sm transition-colors"
+                  >
+                    <Plus className="w-4 h-4" /> Vé người lớn
+                  </button>
+                  <button
+                    onClick={() => handleOpenForm(null, 'Vé trẻ em')}
+                    className="bg-white hover:border-[#0084ff] hover:text-[#0084ff] text-slate-700 border border-slate-200 font-bold py-2 px-3 rounded-lg text-[13px] flex items-center gap-2 shadow-sm transition-colors"
+                  >
+                    <Plus className="w-4 h-4" /> Vé trẻ em
+                  </button>
+                  <button 
+                    onClick={() => handleOpenForm()}
+                    className="bg-[#0084ff] hover:bg-[#0073e6] text-white font-bold py-2 px-4 rounded-lg text-[13px] flex items-center gap-2 shadow-sm transition-colors"
+                  >
+                    <Plus className="w-4 h-4" /> Gói khác
+                  </button>
+                </div>
               </div>
 
               {isLoading ? (

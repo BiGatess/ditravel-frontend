@@ -412,13 +412,59 @@ export default function ProductsPage() {
     setter(formatted);
   };
 
+  const parsePriceValue = (value: any) => {
+    const raw = String(value ?? '').replace(/\D/g, '');
+    return raw ? parseInt(raw, 10) : 0;
+  };
+
+  const getModalActiveTicketPrices = () => modalTicketTypes
+    .filter(tt => tt.name?.trim() && tt.is_active !== false)
+    .map(tt => parsePriceValue(tt.price))
+    .filter(price => price > 0);
+
+  const getModalDisplayPrice = () => {
+    const prices = getModalActiveTicketPrices();
+    return prices.length > 0 ? Math.min(...prices) : parsePriceValue(modalPrice);
+  };
+
+  const addTicketDraft = (name = '') => {
+    setModalTicketTypes(prev => [
+      ...prev,
+      { name, description: '', price: '', original_price: '', min_quantity: 1, max_quantity: 10, is_active: true }
+    ]);
+  };
+
   const handleSaveModal = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!modalName.trim()) newErrors.name = 'Vui lòng nhập tên sản phẩm';
     if (!modalLocation || modalLocation === 'All') newErrors.location = 'Vui lòng chọn Tỉnh/thành';
     if (!modalPlace || modalPlace === 'All') newErrors.place = 'Vui lòng chọn Địa điểm du lịch';
-    if (!modalPrice) newErrors.price = 'Vui lòng nhập giá bán';
+
+    const invalidTicketIndex = modalTicketTypes.findIndex(tt => tt.name?.trim() && parsePriceValue(tt.price) <= 0);
+    if (invalidTicketIndex >= 0) {
+      newErrors.ticketTypes = `Gói ${invalidTicketIndex + 1} đã có tên nhưng chưa có giá bán hợp lệ`;
+    }
+
+    const ticketTypesPayload = modalTicketTypes
+      .filter(tt => tt.name.trim())
+      .map(tt => ({
+        name: tt.name.trim(),
+        description: tt.description?.trim() || null,
+        price: parsePriceValue(tt.price),
+        original_price: tt.original_price ? parsePriceValue(tt.original_price) : null,
+        min_quantity: parseInt(tt.min_quantity) || 1,
+        max_quantity: parseInt(tt.max_quantity) || 10,
+        is_active: tt.is_active !== false
+      }));
+
+    const activeTicketPrices = ticketTypesPayload
+      .filter(tt => tt.is_active && tt.price > 0)
+      .map(tt => tt.price);
+    const priceNum = activeTicketPrices.length > 0 ? Math.min(...activeTicketPrices) : parsePriceValue(modalPrice);
+    if (priceNum <= 0) {
+      newErrors.price = 'Vui lòng nhập giá fallback hoặc thêm ít nhất 1 gói vé có giá';
+    }
 
     if (Object.keys(newErrors).length > 0) {
        setErrors(newErrors);
@@ -426,26 +472,7 @@ export default function ProductsPage() {
     }
     setErrors({});
     
-    const priceNum = parseInt(modalPrice.replace(/\./g, ''));
-    if (priceNum < 0) {
-        alert("Giá bán không được nhỏ hơn 0");
-        return;
-    }
-    
     try {
-      // Build inline ticket types payload
-      const ticketTypesPayload = modalTicketTypes
-        .filter(tt => tt.name.trim())
-        .map(tt => ({
-          name: tt.name.trim(),
-          description: tt.description?.trim() || null,
-          price: parseFloat(tt.price) || 0,
-          original_price: tt.original_price ? parseFloat(tt.original_price) : null,
-          min_quantity: parseInt(tt.min_quantity) || 1,
-          max_quantity: parseInt(tt.max_quantity) || 10,
-          is_active: tt.is_active !== false
-        }));
-
       const payload: any = {
         title: modalName,
         place_id: modalPlace,
@@ -487,6 +514,19 @@ export default function ProductsPage() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
+
+  const getProductTicketPrices = (prod: any) => (prod.ticket_types || [])
+    .filter((ticket: any) => ticket.is_active !== false)
+    .map((ticket: any) => Number(ticket.price))
+    .filter((price: number) => price > 0);
+
+  const getProductStartingPrice = (prod: any) => {
+    const ticketPrices = getProductTicketPrices(prod);
+    return ticketPrices.length > 0 ? Math.min(...ticketPrices) : Number(prod.price || 0);
+  };
+
+  const modalDisplayPrice = getModalDisplayPrice();
+  const modalHasTicketPrice = getModalActiveTicketPrices().length > 0;
 
   return (
     <div className="p-6 h-full flex flex-col bg-slate-50 relative">
@@ -638,7 +678,14 @@ export default function ProductsPage() {
                       <div className="text-[12px] text-slate-500 mt-0.5 line-clamp-1">{prod.place?.name || placeOfProd?.name || ''}</div>
                     </td>
                     <td className="p-4 text-right">
-                      <div className="font-bold text-[#ff5b00]">{formatPrice(prod.price)}</div>
+                      <div className="font-bold text-[#ff5b00]">
+                        {getProductStartingPrice(prod) > 0 ? formatPrice(getProductStartingPrice(prod)) : 'Chưa có giá'}
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-0.5">
+                        {(prod.ticket_types || []).length > 0
+                          ? `${(prod.ticket_types || []).filter((ticket: any) => ticket.is_active !== false).length} gói đang bán`
+                          : 'Giá fallback'}
+                      </div>
                     </td>
                     <td className="p-4 text-center">
                       <span className={`inline-flex px-2.5 py-1 rounded-full text-[12px] font-bold border ${prod.is_active ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
@@ -811,16 +858,24 @@ export default function ProductsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[13px] font-bold text-slate-700 mb-2">Giá bán (VND) <span className="text-red-500">*</span></label>
+                    <label className="block text-[13px] font-bold text-slate-700 mb-2">
+                      Giá từ hiển thị (VND) <span className="text-red-500">*</span>
+                    </label>
                     <div className="relative">
                         <input 
                         type="text" 
-                        value={modalPrice}
+                        value={modalHasTicketPrice ? new Intl.NumberFormat('vi-VN').format(modalDisplayPrice) : modalPrice}
                         onChange={(e) => { handlePriceChange(e, setModalPrice); if(errors.price) setErrors({...errors, price: ''}); }}
+                        disabled={modalHasTicketPrice}
                         placeholder="Ví dụ: 1.500.000" 
-                        className={`w-full border rounded-lg p-3 pr-10 text-[14px] outline-none transition-colors ${errors.price ? 'border-red-500 focus:ring-1 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]'}`}
+                        className={`w-full border rounded-lg p-3 pr-10 text-[14px] outline-none transition-colors ${modalHasTicketPrice ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''} ${errors.price ? 'border-red-500 focus:ring-1 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]'}`}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-[13px] font-bold">₫</span>
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1.5">
+                      {modalHasTicketPrice
+                        ? 'Tự động lấy theo gói vé active có giá thấp nhất bên dưới.'
+                        : 'Dùng làm giá fallback khi sản phẩm chưa có gói vé nào.'}
                     </div>
                     {errors.price && <div className="text-red-500 text-[12px] mt-1.5 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> {errors.price}</div>}
                   </div>
@@ -886,18 +941,49 @@ export default function ProductsPage() {
                   {/* Inline Ticket Types Section */}
                   <div className="md:col-span-2 space-y-4 border-t border-slate-100 pt-5">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-bold text-[15px] text-slate-800 flex items-center gap-2">
-                        <Ticket className="w-4 h-4 text-[#ff5b00]" />
-                        Gói dịch vụ / Loại vé
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={() => setModalTicketTypes(prev => [...prev, { name: '', description: '', price: '', original_price: '', min_quantity: 1, max_quantity: 10, is_active: true }])}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0084ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0073e6] transition-colors"
-                      >
-                        <Plus className="w-3.5 h-3.5" /> Thêm gói
-                      </button>
+                      <div>
+                        <h3 className="font-bold text-[15px] text-slate-800 flex items-center gap-2">
+                          <Ticket className="w-4 h-4 text-[#ff5b00]" />
+                          Gói dịch vụ / Loại vé
+                        </h3>
+                        <p className="text-[12px] text-slate-500 mt-1">
+                          Nhập từng loại vé riêng. Web sẽ hiển thị đúng các gói này và không tự tạo giá người lớn/trẻ em.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => addTicketDraft('Vé người lớn')}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-[12px] font-bold rounded-lg hover:border-[#0084ff] hover:text-[#0084ff] transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Vé người lớn
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addTicketDraft('Vé trẻ em')}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 text-[12px] font-bold rounded-lg hover:border-[#0084ff] hover:text-[#0084ff] transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Vé trẻ em
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => addTicketDraft()}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0084ff] text-white text-[12px] font-bold rounded-lg hover:bg-[#0073e6] transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" /> Gói khác
+                        </button>
+                      </div>
                     </div>
+                    {modalHasTicketPrice && (
+                      <div className="rounded-lg border border-orange-100 bg-orange-50 px-4 py-3 text-[13px] text-orange-700">
+                        Giá từ đang hiển thị: <span className="font-bold">{formatPrice(modalDisplayPrice)}</span>
+                      </div>
+                    )}
+                    {errors.ticketTypes && (
+                      <div className="text-red-500 text-[12px] flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5" /> {errors.ticketTypes}
+                      </div>
+                    )}
 
                     {modalTicketTypes.length === 0 ? (
                       <div className="text-center py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
@@ -917,7 +1003,22 @@ export default function ProductsPage() {
                             >
                               <X className="w-3.5 h-3.5" />
                             </button>
-                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3">Gói {idx + 1}</div>
+                            <div className="flex items-center justify-between mb-3 pr-8">
+                              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Gói {idx + 1}</div>
+                              <label className="flex items-center gap-2 text-[12px] font-bold text-slate-600 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={tt.is_active !== false}
+                                  onChange={e => {
+                                    const updated = [...modalTicketTypes];
+                                    updated[idx].is_active = e.target.checked;
+                                    setModalTicketTypes(updated);
+                                  }}
+                                  className="w-4 h-4 rounded border-slate-300 text-emerald-500 focus:ring-emerald-500"
+                                />
+                                Đang bán
+                              </label>
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div className="md:col-span-2">
                                 <input
@@ -1079,6 +1180,7 @@ export default function ProductsPage() {
         <TicketTypesModal 
           product={managingTicketProduct}
           onClose={() => setManagingTicketProduct(null)}
+          onChanged={fetchData}
         />
       )}
 
