@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Phone, Mail, Share2, Clock, CheckCircle2, 
-  MapPin, Send, Facebook, Instagram, ChevronDown, ChevronUp
+  Send, Facebook, Instagram, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -297,51 +297,6 @@ export default function ContactPage() {
                 </div>
               </form>
             </div>
-          </div>
-        </div>
-
-        {/* Khu vực địa chỉ và bản đồ */}
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          <div className="bg-white rounded-2xl p-8 lg:p-10 shadow-sm border border-slate-100 flex flex-col justify-center">
-            <div className="w-14 h-14 bg-blue-50 text-[#0084ff] rounded-xl flex items-center justify-center mb-6">
-              <MapPin className="w-6 h-6" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4">Trụ sở chính</h3>
-            <p className="text-[#64748b] text-lg leading-relaxed mb-8">
-              11A Hồng Hà, Phường 2,<br/>Quận Tân Bình, Thành phố Hồ Chí Minh, Việt Nam
-            </p>
-            
-            <div className="space-y-3 mb-8 text-[15px]">
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-700 w-24">Hotline:</span>
-                <span className="text-[#0084ff] font-bold">1900 0000</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-700 w-24">Email:</span>
-                <span className="text-slate-600">hotro@ditravel.com</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="font-bold text-slate-700 w-24">Giờ làm việc:</span>
-                <span className="text-slate-600">08:00 - 21:00</span>
-              </div>
-            </div>
-
-            <a href="https://maps.google.com" target="_blank" rel="noreferrer" className="inline-flex items-center justify-center px-6 h-[44px] border-2 border-[#0084ff] text-[#0084ff] hover:bg-[#0084ff] hover:text-white font-bold rounded-xl transition-colors w-max">
-              Xem trên Google Maps
-            </a>
-          </div>
-          
-          <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-100 h-[400px] bg-slate-200">
-            {/* Mock map placeholder */}
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.123456789!2d106.666666!3d10.800000!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ4JzAwLjAiTiAxMDbCsDQwJzAwLjAiRQ!5e0!3m2!1sen!2s!4v1620000000000!5m2!1sen!2s" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen={false} 
-              loading="lazy"
-              title="Google Map"
-            ></iframe>
           </div>
         </div>
 
