@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   CalendarDays,
+  Eye,
+  EyeOff,
   KeyRound,
   Loader2,
   Mail,
@@ -29,6 +31,8 @@ type PasswordForm = {
   confirm_password: string;
 };
 
+type PasswordField = keyof PasswordForm;
+
 const genderOptions = [
   { value: 'male', label: 'Nam' },
   { value: 'female', label: 'Nữ' },
@@ -39,7 +43,7 @@ const inputClass =
   'h-11 w-full rounded-lg border border-slate-200 bg-white px-3 pl-10 text-[14px] text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#ff5b00] focus:ring-2 focus:ring-[#ff5b00]/15';
 
 const passwordInputClass =
-  'h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-[14px] text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#ff5b00] focus:ring-2 focus:ring-[#ff5b00]/15';
+  'h-11 w-full rounded-lg border border-slate-200 bg-white px-3 pr-10 text-[14px] text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-[#ff5b00] focus:ring-2 focus:ring-[#ff5b00]/15';
 
 const getErrorMessage = (err: any, fallback: string) => {
   const detail = err?.response?.data?.detail;
@@ -60,6 +64,11 @@ export default function ProfileInfo() {
     current_password: '',
     new_password: '',
     confirm_password: '',
+  });
+  const [visiblePasswords, setVisiblePasswords] = useState<Record<PasswordField, boolean>>({
+    current_password: false,
+    new_password: false,
+    confirm_password: false,
   });
   const [profileSaving, setProfileSaving] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
@@ -84,6 +93,25 @@ export default function ProfileInfo() {
 
   const displayName = profile.full_name.trim() || user?.full_name || 'Người dùng';
   const avatarLabel = displayName.trim().charAt(0).toUpperCase() || 'U';
+
+  const togglePasswordVisibility = (field: PasswordField) => {
+    setVisiblePasswords((prev) => ({ ...prev, [field]: !prev[field] }));
+  };
+
+  const renderPasswordToggle = (field: PasswordField, label: string) => {
+    const isVisible = visiblePasswords[field];
+
+    return (
+      <button
+        type="button"
+        onClick={() => togglePasswordVisibility(field)}
+        className="absolute right-3 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+        aria-label={isVisible ? `Ẩn ${label}` : `Hiện ${label}`}
+      >
+        {isVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+      </button>
+    );
+  };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,33 +342,42 @@ export default function ProfileInfo() {
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <div className="space-y-1.5">
               <label className="text-[13px] font-semibold text-slate-700">Mật khẩu hiện tại</label>
-              <input
-                type="password"
-                value={password.current_password}
-                onChange={(e) => setPassword({ ...password, current_password: e.target.value })}
-                className={passwordInputClass}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={visiblePasswords.current_password ? 'text' : 'password'}
+                  value={password.current_password}
+                  onChange={(e) => setPassword({ ...password, current_password: e.target.value })}
+                  className={passwordInputClass}
+                  required
+                />
+                {renderPasswordToggle('current_password', 'mật khẩu hiện tại')}
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-[13px] font-semibold text-slate-700">Mật khẩu mới</label>
-              <input
-                type="password"
-                value={password.new_password}
-                onChange={(e) => setPassword({ ...password, new_password: e.target.value })}
-                className={passwordInputClass}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={visiblePasswords.new_password ? 'text' : 'password'}
+                  value={password.new_password}
+                  onChange={(e) => setPassword({ ...password, new_password: e.target.value })}
+                  className={passwordInputClass}
+                  required
+                />
+                {renderPasswordToggle('new_password', 'mật khẩu mới')}
+              </div>
             </div>
             <div className="space-y-1.5">
               <label className="text-[13px] font-semibold text-slate-700">Nhập lại mật khẩu mới</label>
-              <input
-                type="password"
-                value={password.confirm_password}
-                onChange={(e) => setPassword({ ...password, confirm_password: e.target.value })}
-                className={passwordInputClass}
-                required
-              />
+              <div className="relative">
+                <input
+                  type={visiblePasswords.confirm_password ? 'text' : 'password'}
+                  value={password.confirm_password}
+                  onChange={(e) => setPassword({ ...password, confirm_password: e.target.value })}
+                  className={passwordInputClass}
+                  required
+                />
+                {renderPasswordToggle('confirm_password', 'mật khẩu xác nhận')}
+              </div>
             </div>
           </div>
 
