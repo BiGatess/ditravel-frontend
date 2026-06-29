@@ -4,7 +4,7 @@ import { AlertCircle, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface PaymentStepProps {
-  contactInfo: { name: string; phone: string; email: string };
+  contactInfo: { name: string; phone: string; email: string; address: string };
   setContactInfo: (info: any) => void;
   errors: { name: string; phone: string; email: string };
   cartItems: any[];
@@ -80,6 +80,19 @@ export default function PaymentStep({
                     <AlertCircle className="w-3.5 h-3.5" /> E-voucher/Vé sẽ được gửi đến email này của bạn
                   </p>
                 )}
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-[13px] font-semibold text-slate-700 mb-1.5">Địa chỉ liên hệ</label>
+                <textarea
+                  value={contactInfo.address}
+                  onChange={(e) => setContactInfo({ ...contactInfo, address: e.target.value })}
+                  rows={3}
+                  className="w-full border border-slate-300 focus:border-[#ff5b00] focus:ring-[#ff5b00] rounded-lg p-3 text-[14px] outline-none focus:ring-1 transition-shadow resize-none"
+                  placeholder="Địa chỉ đã lưu trong hồ sơ sẽ tự điền tại đây"
+                />
+                <p className="text-[12px] text-slate-500 mt-2">
+                  Bạn có thể cập nhật địa chỉ mặc định trong trang thông tin cá nhân.
+                </p>
               </div>
             </div>
           </section>

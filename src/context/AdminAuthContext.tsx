@@ -5,6 +5,7 @@ interface AdminAuthContextType {
   isAuthenticated: boolean;
   user: any;
   login: (token: string) => Promise<any>;
+  refreshUser: () => Promise<any>;
   logout: () => void;
 }
 
@@ -55,7 +56,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   if (isInitializing) return null;
 
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AdminAuthContext.Provider value={{ isAuthenticated, user, login, refreshUser: fetchUser, logout }}>
       {children}
     </AdminAuthContext.Provider>
   );

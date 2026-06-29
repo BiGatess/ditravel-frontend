@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCart } from '../context/CartContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import CartStep from '../components/checkout/CartStep';
 import PaymentStep from '../components/checkout/PaymentStep';
 import SuccessStep from '../components/checkout/SuccessStep';
@@ -8,10 +9,22 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
-  const [contactInfo, setContactInfo] = useState({ name: '', phone: '', email: '' });
+  const [contactInfo, setContactInfo] = useState({ name: '', phone: '', email: '', address: '' });
   const [errors, setErrors] = useState({ name: '', phone: '', email: '' });
 
+  const { user } = useAdminAuth();
   const { cartItems, updateQuantity, removeRow, totalItems, totalPrice } = useCart();
+
+  useEffect(() => {
+    if (!user) return;
+
+    setContactInfo((prev) => ({
+      name: prev.name || user.full_name || '',
+      phone: prev.phone || user.phone || '',
+      email: prev.email || user.email || '',
+      address: prev.address || user.address || '',
+    }));
+  }, [user]);
 
   const handlePayment = () => {
     let newErrors = { name: '', phone: '', email: '' };

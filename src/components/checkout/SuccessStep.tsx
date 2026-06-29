@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 interface SuccessStepProps {
   isPaid: boolean;
   setIsPaid: (paid: boolean) => void;
-  contactInfo: { name: string; phone: string; email: string };
+  contactInfo: { name: string; phone: string; email: string; address: string };
   cartItems: any[];
   totalPrice: number;
 }
@@ -198,6 +198,13 @@ export default function SuccessStep({
                   
                   <div className="font-medium text-slate-700">Email</div>
                   <div className="text-slate-600">{contactInfo.email || "nguyenvankien@gmail.com"}</div>
+
+                  {contactInfo.address && (
+                    <>
+                      <div className="font-medium text-slate-700">Địa chỉ</div>
+                      <div className="text-slate-600">{contactInfo.address}</div>
+                    </>
+                  )}
                </div>
             </div>
           </div>
