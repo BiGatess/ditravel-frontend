@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import axiosClient from '../../api/axios';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
@@ -131,7 +131,6 @@ export default function LoginForm() {
       >
         {isSuccess ? (
           <>
-            <CheckCircle2 className="w-5 h-5" />
             Đăng nhập thành công
           </>
         ) : isLoading ? (
@@ -142,7 +141,6 @@ export default function LoginForm() {
         ) : (
           <>
             Đăng nhập
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </>
         )}
       </button>
