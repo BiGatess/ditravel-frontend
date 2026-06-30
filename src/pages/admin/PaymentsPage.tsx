@@ -209,7 +209,7 @@ export default function PaymentsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="space-y-2 md:col-span-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Webhook URL</span>
-                <input value={form.webhook_url} onChange={(e) => handleChange('webhook_url', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="https://your-domain.com/api/sepay/webhook" />
+                <input value={form.webhook_url} onChange={(e) => handleChange('webhook_url', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="https://your-domain.com/api/payments/sepay/webhook" />
               </label>
               <label className="space-y-2 md:col-span-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Webhook secret</span>
