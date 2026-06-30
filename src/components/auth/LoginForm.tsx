@@ -56,10 +56,10 @@ export default function LoginForm() {
         }
       });
       
-      await login(res.data.access_token);
+      const currentUser = await login(res.data.access_token);
       setIsSuccess(true);
       await wait(650);
-      navigate('/', { replace: true });
+      navigate(currentUser?.user_type === 'ADMIN' ? '/admin/dashboard' : '/', { replace: true });
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
         setApiError(err.response.data.detail);

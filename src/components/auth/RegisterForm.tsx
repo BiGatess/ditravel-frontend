@@ -77,8 +77,8 @@ export default function RegisterForm() {
         }
       });
       
-      await login(res.data.access_token);
-      navigate('/');
+      const currentUser = await login(res.data.access_token);
+      navigate(currentUser?.user_type === 'ADMIN' ? '/admin/dashboard' : '/');
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
         const detail = err.response.data.detail;
