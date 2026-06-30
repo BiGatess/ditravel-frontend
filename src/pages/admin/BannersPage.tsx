@@ -572,7 +572,7 @@ export default function BannersPage() {
               {/* Form Right (Preview & Upload) */}
               <div className="w-full md:w-[320px] flex flex-col shrink-0">
                 <label className="block text-[13px] font-bold text-slate-700 mb-2">Hình ảnh Banner <span className="text-red-500">*</span></label>
-                <div className={`bg-slate-50 border ${formErrors.image_url ? 'border-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.1)]' : 'border-slate-200'} rounded-xl flex-1 min-h-[200px] flex flex-col overflow-hidden relative group transition-all`}>
+                <div className={`bg-slate-50 border ${formErrors.image_url ? 'border-red-500 shadow-[0_0_0_3px_rgba(239,68,68,0.1)]' : 'border-slate-200'} rounded-xl w-full aspect-[16/9] flex flex-col overflow-hidden relative group transition-all`}>
                   <input 
                     type="file" 
                     accept="image/*"
@@ -597,7 +597,7 @@ export default function BannersPage() {
                       <img 
                         src={formData.image_url} 
                         alt="Preview" 
-                        className="w-full h-full object-cover absolute inset-0"
+                        className="w-full h-full object-contain bg-slate-100 absolute inset-0"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiNmMThmMWIiIC8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTQ5NGEwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+4Lih4o+S4LiEIEFuIGVycm9yIG9jY3VycmVkPC90ZXh0Pjwvc3ZnPg==';
                         }}
@@ -622,15 +622,16 @@ export default function BannersPage() {
                       )}
                     </>
                   ) : (
-                    <label htmlFor="banner-upload" className="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center z-10 relative cursor-pointer hover:bg-slate-100 transition-colors">
-                      <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0084ff] flex items-center justify-center mb-3">
-                        <Upload className="w-6 h-6" />
-                      </div>
-                      <p className="text-[13px] font-bold text-slate-700 mb-1">Click để tải ảnh lên</p>
-                      <p className="text-[11px] text-slate-500">JPG, PNG, GIF (Khuyến nghị 16:9)</p>
-                    </label>
-                  )}
-                </div>
+                      <label htmlFor="banner-upload" className="flex-1 flex flex-col items-center justify-center text-slate-400 p-6 text-center z-10 relative cursor-pointer hover:bg-slate-100 transition-colors">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 text-[#0084ff] flex items-center justify-center mb-3">
+                          <Upload className="w-6 h-6" />
+                        </div>
+                        <p className="text-[13px] font-bold text-slate-700 mb-1">Click để tải ảnh lên</p>
+                        <p className="text-[11px] text-slate-500">JPG, PNG, GIF</p>
+                        <p className="text-[11px] text-slate-500 mt-1">Khuyến nghị ảnh ngang 16:9 để hiển thị chuẩn</p>
+                      </label>
+                    )}
+                  </div>
                 {formErrors.image_url && <div className="text-red-500 text-[12px] mt-2 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Vui lòng tải lên hình ảnh banner</div>}
               </div>
             </div>
