@@ -13,8 +13,6 @@ export default function LoginForm() {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
 
-  const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
@@ -58,7 +56,6 @@ export default function LoginForm() {
       
       const currentUser = await login(res.data.access_token);
       setIsSuccess(true);
-      await wait(650);
       navigate(currentUser?.user_type === 'ADMIN' ? '/admin/dashboard' : '/', { replace: true });
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
