@@ -58,8 +58,10 @@ const FilterDropdown = ({ icon: Icon, label, value, options, valueMap, onChange 
         <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[220px] bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 py-2 z-50 animate-dropdown">
           <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
             {options?.map((opt: any) => {
-              const optDisplay = valueMap ? valueMap[opt] : (opt.name || opt);
-              const optValue = opt.id || opt;
+              const optValue = opt?.id || opt;
+              const optDisplay = valueMap
+                ? (valueMap[optValue] || opt?.name || opt)
+                : (opt?.name || opt);
               const isSelected = value === optValue;
               return (
                 <button
