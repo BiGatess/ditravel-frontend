@@ -4,6 +4,7 @@ import {
   Trash2, Star, Check, EyeOff, MessageSquare
 } from 'lucide-react';
 import Toast, { ToastMessage, ToastType } from '../../components/admin/Toast';
+import axiosClient from '../../api/axios';
 
 interface Review {
   id: string;
@@ -17,10 +18,23 @@ interface Review {
   adminReply: string | null;
 }
 
-const MOCK_REVIEWS: Review[] = [];
+const getAvatarUrl = (name: string) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'DiTravel')}&background=f1f5f9&color=475569`;
+
+const mapReview = (review: any): Review => ({
+  id: review.id,
+  userName: review.user_name || 'Khách hàng',
+  userAvatar: review.user_avatar || getAvatarUrl(review.user_name || 'Khách hàng'),
+  productName: review.product_name || 'Sản phẩm',
+  rating: Number(review.rating || 0),
+  content: review.content || '',
+  createdAt: review.created_at,
+  status: review.status,
+  adminReply: review.admin_reply || null,
+});
 
 export default function ReviewsPage() {
-  const [reviews, setReviews] = useState<Review[]>(MOCK_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,6 +87,22 @@ export default function ReviewsPage() {
     setToastMessage({ title, message, type });
   };
 
+  const fetchReviews = async () => {
+    setIsLoading(true);
+    try {
+      const res = await axiosClient.get('/reviews/');
+      setReviews((res.data || []).map(mapReview));
+    } catch (error: any) {
+      showToast('Lỗi tải đánh giá', error.response?.data?.detail || 'Không thể tải danh sách đánh giá.', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
   const filteredReviews = useMemo(() => {
     let result = [...reviews];
     
@@ -106,29 +136,46 @@ export default function ReviewsPage() {
     ? (reviews.reduce((acc, r) => acc + r.rating, 0) / totalReviews).toFixed(1) 
     : '0.0';
 
-  const handleApprove = (id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setReviews(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
-    showToast('Duyệt thành công', 'Đánh giá đã được hiển thị công khai.');
-    if (selectedReview?.id === id) setSelectedReview(prev => prev ? { ...prev, status: 'approved' } : null);
+  const updateReviewStatus = async (id: string, status: Review['status']) => {
+    try {
+      const res = await axiosClient.patch(`/reviews/${id}/status`, { status });
+      const updated = mapReview(res.data);
+      setReviews(prev => prev.map(r => r.id === id ? updated : r));
+      if (selectedReview?.id === id) setSelectedReview(updated);
+      return updated;
+    } catch (error: any) {
+      showToast('Lỗi cập nhật', error.response?.data?.detail || 'Không thể cập nhật trạng thái đánh giá.', 'error');
+      return null;
+    }
   };
 
-  const handleToggleHide = (id: string, currentStatus: string, e?: React.MouseEvent) => {
+  const handleApprove = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const updated = await updateReviewStatus(id, 'approved');
+    if (updated) showToast('Duyệt thành công', 'Đánh giá đã được hiển thị công khai.');
+  };
+
+  const handleToggleHide = async (id: string, currentStatus: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
     const newStatus = currentStatus === 'hidden' ? 'approved' : 'hidden';
-    setReviews(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
+    const updated = await updateReviewStatus(id, newStatus as Review['status']);
+    if (!updated) return;
     showToast(
       newStatus === 'hidden' ? 'Đã ẩn đánh giá' : 'Đã hiển thị đánh giá', 
       newStatus === 'hidden' ? 'Đánh giá đã bị ẩn khỏi hệ thống.' : 'Đánh giá đã được hiển thị công khai.'
     );
-    if (selectedReview?.id === id) setSelectedReview(prev => prev ? { ...prev, status: newStatus } : null);
   };
 
-  const handleDelete = (id: string) => {
-    setReviews(prev => prev.filter(r => r.id !== id));
-    setConfirmDeleteId(null);
-    showToast('Xóa thành công', 'Đánh giá đã bị xóa vĩnh viễn.');
-    if (selectedReview?.id === id) setIsModalOpen(false);
+  const handleDelete = async (id: string) => {
+    try {
+      await axiosClient.delete(`/reviews/${id}`);
+      setReviews(prev => prev.filter(r => r.id !== id));
+      setConfirmDeleteId(null);
+      showToast('Xóa thành công', 'Đánh giá đã bị xóa vĩnh viễn.', 'delete');
+      if (selectedReview?.id === id) setIsModalOpen(false);
+    } catch (error: any) {
+      showToast('Lỗi xóa đánh giá', error.response?.data?.detail || 'Không thể xóa đánh giá.', 'error');
+    }
   };
 
   const handleOpenModal = (review: Review) => {
@@ -274,7 +321,13 @@ export default function ReviewsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredReviews.length === 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="py-12 text-center text-[14px] text-slate-500">
+                    Đang tải đánh giá...
+                  </td>
+                </tr>
+              ) : filteredReviews.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-slate-400">

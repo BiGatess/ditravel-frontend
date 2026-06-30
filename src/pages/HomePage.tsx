@@ -223,7 +223,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const res = await axiosClient.get('/banners/');
+        const res = await axiosClient.get('/banners/active');
         const activeBanners = res.data.filter((b: any) => b.is_active);
         const main = activeBanners.filter((b: any) => b.position === 'HOME_MAIN').sort((a: any, b: any) => a.order - b.order);
         const sub = activeBanners.filter((b: any) => b.position === 'HOME_SUB').sort((a: any, b: any) => a.order - b.order);

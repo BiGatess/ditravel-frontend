@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star, Upload, X } from 'lucide-react';
 
 export default function ReviewForm({ onSubmit }: { onSubmit: (review: any) => void }) {
+  const [userName, setUserName] = useState('');
   const [rating, setRating] = useState(5);
   const [hoverRating, setHoverRating] = useState(0);
   const [content, setContent] = useState('');
@@ -24,16 +25,14 @@ export default function ReviewForm({ onSubmit }: { onSubmit: (review: any) => vo
     if (!content.trim()) return;
     
     onSubmit({
-      id: Date.now().toString(),
-      author: 'Thành viên DITRAVEL',
-      date: new Date().toLocaleDateString('vi-VN'),
+      userName: userName.trim() || 'Khách hàng DiTravel',
       rating,
       content,
-      images,
-      likes: 0
+      images
     });
     
     // Reset form
+    setUserName('');
     setContent('');
     setImages([]);
     setRating(5);
@@ -43,6 +42,16 @@ export default function ReviewForm({ onSubmit }: { onSubmit: (review: any) => vo
     <form onSubmit={handleSubmit} className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-8">
       <h4 className="font-bold text-slate-800 mb-3">Đánh giá chuyến đi của bạn</h4>
       
+      <div className="mb-4">
+        <input
+          type="text"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          placeholder="Tên hiển thị của bạn"
+          className="w-full border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]"
+        />
+      </div>
+
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[14px] text-slate-600 mr-2">Chất lượng:</span>
         <div className="flex gap-1">

@@ -9,6 +9,7 @@ import {
 import { motion } from 'motion/react';
 import { useWishlist } from '../context/WishlistContext';
 import PackageSelectionWidget from '../components/product/PackageSelectionWidget';
+import ReviewSection from '../components/product/ReviewSection';
 import axiosClient from '../api/axios';
 import { normalizeVndAmount } from '../utils/currency';
 
@@ -395,6 +396,8 @@ export default function ProductDetailPage() {
                   />
                 </section>
               )}
+
+              <ReviewSection productId={productData.id} productName={productData.name} />
 
             </motion.div>
           </div>

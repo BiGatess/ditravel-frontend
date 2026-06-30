@@ -1,38 +1,77 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Star, ThumbsUp } from 'lucide-react';
-import { motion } from 'motion/react';
 import ReviewForm from './ReviewForm';
+import axiosClient from '../../api/axios';
 
-const INITIAL_REVIEWS = [
-  {
-    id: '1',
-    author: 'ĐÀM QUANG THIỆN',
-    date: '16/12/2025 6:24 SA',
-    rating: 4,
-    content: 'Ổn. Chất lượng dịch vụ tương xứng với giá tiền. Hướng dẫn viên nhiệt tình nhưng thời gian ở Fantasy Park hơi ít.',
-    images: [],
-    likes: 12
-  },
-  {
-    id: '2',
-    author: 'NGUYỄN THỊ THU NGA',
-    date: '10/11/2025 2:15 CH',
-    rating: 5,
-    content: 'Gia đình mình đã có một chuyến đi tuyệt vời. Cáp treo rất êm, buffet trưa cực kỳ phong phú. Rất đáng tiền!',
-    images: ['https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&q=80&w=200'],
-    likes: 45
-  }
-];
+type Review = {
+  id: string;
+  author: string;
+  date: string;
+  rating: number;
+  content: string;
+  adminReply?: string | null;
+  likes: number;
+};
 
-export default function ReviewSection() {
-  const [reviews, setReviews] = useState(INITIAL_REVIEWS);
+type ReviewSectionProps = {
+  productId: string;
+  productName: string;
+};
 
-  const handleAddReview = (newReview: any) => {
-    setReviews([...reviews, newReview]); // Add to bottom (or top, but since form is at bottom, maybe add to bottom)
+const mapReview = (review: any): Review => ({
+  id: review.id,
+  author: review.user_name || 'Khách hàng',
+  date: review.created_at ? new Date(review.created_at).toLocaleString('vi-VN') : '',
+  rating: Number(review.rating || 0),
+  content: review.content || '',
+  adminReply: review.admin_reply || null,
+  likes: 0,
+});
+
+export default function ReviewSection({ productId, productName }: ReviewSectionProps) {
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const fetchReviews = async () => {
+    if (!productId) return;
+    setIsLoading(true);
+    try {
+      const res = await axiosClient.get(`/reviews/product/${productId}`);
+      setReviews((res.data || []).map(mapReview));
+    } catch (error) {
+      setReviews([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const totalRating = reviews.reduce((acc, curr) => acc + curr.rating, 0);
-  const averageRating = (totalRating / reviews.length).toFixed(1);
+  useEffect(() => {
+    fetchReviews();
+  }, [productId]);
+
+  const averageRating = useMemo(() => {
+    if (reviews.length === 0) return '0.0';
+    const totalRating = reviews.reduce((acc, curr) => acc + curr.rating, 0);
+    return (totalRating / reviews.length).toFixed(1);
+  }, [reviews]);
+
+  const handleAddReview = async (newReview: any) => {
+    setMessage('');
+    try {
+      await axiosClient.post('/reviews/', {
+        product_id: productId,
+        product_name: productName,
+        user_name: newReview.userName || 'Khách hàng DiTravel',
+        rating: newReview.rating,
+        content: newReview.content,
+        status: 'pending',
+      });
+      setMessage('Đánh giá của bạn đã được gửi và đang chờ duyệt.');
+    } catch (error: any) {
+      setMessage(error.response?.data?.detail || 'Không thể gửi đánh giá. Vui lòng thử lại.');
+    }
+  };
 
   return (
     <div className="mt-8 pt-8 border-t border-slate-200">
@@ -40,7 +79,6 @@ export default function ReviewSection() {
         <h3 className="text-[20px] font-bold text-slate-800">Đánh giá từ khách hàng</h3>
       </div>
 
-      {/* Summary */}
       <div className="flex items-center gap-6 mb-8 p-6 bg-orange-50 border border-orange-100 rounded-xl">
         <div className="text-center shrink-0">
           <div className="text-[36px] font-bold text-[#ff5b00] leading-none mb-1">{averageRating}</div>
@@ -49,19 +87,19 @@ export default function ReviewSection() {
               <Star key={star} className={`w-4 h-4 ${star <= Math.round(Number(averageRating)) ? 'fill-current' : 'text-orange-200'}`} />
             ))}
           </div>
-          <div className="text-[12px] text-slate-500">{reviews.length} đánh giá</div>
+          <div className="text-[12px] text-slate-500">{reviews.length} đánh giá đã duyệt</div>
         </div>
         
         <div className="flex-1 max-w-[300px]">
           {[5, 4, 3, 2, 1].map((star) => {
             const count = reviews.filter(r => r.rating === star).length;
-            const percent = (count / reviews.length) * 100;
+            const percent = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
             return (
               <div key={star} className="flex items-center gap-2 text-[12px] mb-1">
                 <span className="w-2 text-slate-600">{star}</span>
                 <Star className="w-3 h-3 text-slate-400 fill-current" />
                 <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#ff5b00]" style={{ width: `${percent}%` }}></div>
+                  <div className="h-full bg-[#ff5b00]" style={{ width: `${percent}%` }} />
                 </div>
                 <span className="w-6 text-right text-slate-500">{count}</span>
               </div>
@@ -70,9 +108,14 @@ export default function ReviewSection() {
         </div>
       </div>
 
-      {/* List */}
       <div className="space-y-6 mb-10">
-        {reviews.map((review) => (
+        {isLoading ? (
+          <div className="text-[14px] text-slate-500 py-6">Đang tải đánh giá...</div>
+        ) : reviews.length === 0 ? (
+          <div className="text-[14px] text-slate-500 py-6 border border-dashed border-slate-200 rounded-xl text-center">
+            Chưa có đánh giá nào được duyệt cho sản phẩm này.
+          </div>
+        ) : reviews.map((review) => (
           <div key={review.id} className="border-b border-slate-100 pb-6 last:border-0">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-3">
@@ -97,11 +140,9 @@ export default function ReviewSection() {
               {review.content}
             </p>
 
-            {review.images && review.images.length > 0 && (
-              <div className="flex gap-2 mb-3 pl-13">
-                {review.images.map((img: string, idx: number) => (
-                  <img key={idx} src={img} alt="Review" className="w-20 h-20 object-cover rounded-lg border border-slate-200" />
-                ))}
+            {review.adminReply && (
+              <div className="ml-13 mb-3 rounded-lg bg-slate-50 border border-slate-100 p-3 text-[13px] text-slate-600">
+                <span className="font-bold text-slate-800">Phản hồi từ DiTravel:</span> {review.adminReply}
               </div>
             )}
             
@@ -115,9 +156,13 @@ export default function ReviewSection() {
         ))}
       </div>
 
-      {/* Form */}
       <div className="mt-10 pt-8 border-t border-slate-200">
         <h3 className="text-[18px] font-bold text-slate-800 mb-4">Để lại đánh giá của bạn</h3>
+        {message && (
+          <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-[13px] text-blue-700">
+            {message}
+          </div>
+        )}
         <ReviewForm onSubmit={handleAddReview} />
       </div>
     </div>

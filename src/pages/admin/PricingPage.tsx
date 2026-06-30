@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   ChevronLeft, ChevronRight, Calendar as CalendarIcon, 
-  CheckCircle, AlertTriangle, Filter, Save, X, RefreshCcw
+  AlertTriangle, Filter, Save, RefreshCcw
 } from 'lucide-react';
-import Toast, { ToastMessage, ToastType } from '../../components/admin/Toast';
-
-// --- MOCK DATA ---
-const MOCK_PRODUCTS: any[] = [];
-
-const MOCK_OPTIONS: Record<string, {id: string, name: string}[]> = {};
+import Toast, { ToastMessage } from '../../components/admin/Toast';
+import axiosClient from '../../api/axios';
+import { formatVndInput, formatVndInputValue, parseVndInput } from '../../utils/currency';
 
 type PricingStatus = 'OPEN' | 'FULL' | 'CLOSED';
 
 interface PricingRecord {
+  id?: string;
   productId: string;
   optionId: string;
   date: string; // YYYY-MM-DD
@@ -23,14 +21,9 @@ interface PricingRecord {
   note?: string;
 }
 
-// Generate some mock data for current month
-const generateMockData = () => ({});
-
-const INITIAL_PRICING_DATA = generateMockData();
-
 // Utilities
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('vi-VN').format(amount);
+  return formatVndInputValue(amount);
 };
 
 const getDaysInMonth = (year: number, month: number) => {
@@ -93,10 +86,11 @@ const CustomDropdown = ({ label, value, options, onChange, placeholder }: any) =
 export default function PricingPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  const [selectedProduct, setSelectedProduct] = useState('bana');
-  const [selectedOption, setSelectedOption] = useState('adult');
+  const [products, setProducts] = useState<any[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState('');
+  const [selectedOption, setSelectedOption] = useState('');
   
-  const [pricingData, setPricingData] = useState<Record<string, PricingRecord>>(INITIAL_PRICING_DATA);
+  const [pricingData, setPricingData] = useState<Record<string, PricingRecord>>({});
   const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set());
   
   const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
@@ -114,11 +108,55 @@ export default function PricingPage() {
   const [formNote, setFormNote] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const productOptions = useMemo(
+    () => products.map(product => ({ id: product.id, name: product.title })),
+    [products]
+  );
+
+  const ticketOptionsByProduct = useMemo(() => {
+    return products.reduce((acc: Record<string, { id: string; name: string }[]>, product) => {
+      acc[product.id] = (product.ticket_types || [])
+        .filter((ticket: any) => ticket.is_active !== false)
+        .map((ticket: any) => ({ id: ticket.id, name: ticket.name }));
+      return acc;
+    }, {});
+  }, [products]);
+
+  const selectedTicketOptions = selectedProduct ? (ticketOptionsByProduct[selectedProduct] || []) : [];
+
+  const fetchProducts = useCallback(async () => {
+    const res = await axiosClient.get('/products/');
+    const activeProducts = (res.data || []).filter((product: any) => product.is_active !== false);
+    setProducts(activeProducts);
+  }, []);
+
   useEffect(() => {
-    if (selectedProduct && MOCK_OPTIONS[selectedProduct]) {
-      setSelectedOption(MOCK_OPTIONS[selectedProduct][0].id);
+    fetchProducts().catch(() => {
+      setToastMessage({ title: 'Lỗi tải dữ liệu', message: 'Không thể tải danh sách sản phẩm.', type: 'error' });
+    });
+  }, [fetchProducts]);
+
+  useEffect(() => {
+    if (!products.length) {
+      setSelectedProduct('');
+      setSelectedOption('');
+      return;
     }
-  }, [selectedProduct]);
+    if (!products.some(product => product.id === selectedProduct)) {
+      setSelectedProduct(products[0].id);
+    }
+  }, [products, selectedProduct]);
+
+  useEffect(() => {
+    const options = selectedProduct ? (ticketOptionsByProduct[selectedProduct] || []) : [];
+    if (!options.length) {
+      setSelectedOption('');
+      return;
+    }
+    if (!options.some(option => option.id === selectedOption)) {
+      setSelectedOption(options[0].id);
+    }
+  }, [selectedProduct, selectedOption, ticketOptionsByProduct]);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -134,16 +172,24 @@ export default function PricingPage() {
     setCurrentDate(new Date());
   };
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await fetchProducts();
+      await loadPricing();
       setToastMessage({
         title: 'Làm mới thành công',
         message: 'Dữ liệu lịch & giá đã được cập nhật.'
       });
-      setTimeout(() => setToastMessage(null), 3000);
-    }, 1000);
+    } catch (error) {
+      setToastMessage({
+        title: 'Lỗi làm mới',
+        message: 'Không thể tải lại dữ liệu lịch & giá.',
+        type: 'error'
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const year = currentDate.getFullYear();
@@ -181,6 +227,59 @@ export default function PricingPage() {
     return `${selectedProduct}_${selectedOption}_${dateStr}`;
   };
 
+  const loadPricing = useCallback(async () => {
+    if (!selectedProduct || !selectedOption) {
+      setPricingData({});
+      return;
+    }
+
+    const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+    const endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+    const res = await axiosClient.get('/pricing/', {
+      params: {
+        product_id: selectedProduct,
+        ticket_type_id: selectedOption,
+        start_date: startDate,
+        end_date: endDate,
+      },
+    });
+
+    const nextData = (res.data || []).reduce((acc: Record<string, PricingRecord>, record: any) => {
+      acc[`${record.product_id}_${record.ticket_type_id}_${record.date}`] = {
+        id: record.id,
+        productId: record.product_id,
+        optionId: record.ticket_type_id,
+        date: record.date,
+        price: parseVndInput(record.price),
+        originalPrice: record.original_price ? parseVndInput(record.original_price) : null,
+        stock: Number(record.stock || 0),
+        status: record.status,
+        note: record.note || '',
+      };
+      return acc;
+    }, {});
+
+    setPricingData(nextData);
+  }, [selectedProduct, selectedOption, year, month, daysInMonth]);
+
+  useEffect(() => {
+    if (!selectedProduct || !selectedOption) {
+      setPricingData({});
+      return;
+    }
+
+    setIsLoading(true);
+    loadPricing()
+      .catch(() => {
+        setToastMessage({
+          title: 'Lỗi tải lịch giá',
+          message: 'Không thể tải dữ liệu lịch & giá cho gói đã chọn.',
+          type: 'error',
+        });
+      })
+      .finally(() => setIsLoading(false));
+  }, [loadPricing, selectedProduct, selectedOption]);
+
   const handleDateClick = (day: number) => {
     if (!selectedProduct || !selectedOption) return;
     
@@ -200,8 +299,8 @@ export default function PricingPage() {
       const selectedArr = Array.from(newSelection);
       const record = pricingData[getRecordKey(selectedArr[0] as string)];
       if (record) {
-        setFormPrice(record.price.toString());
-        setFormOriginalPrice(record.originalPrice ? record.originalPrice.toString() : '');
+        setFormPrice(formatVndInputValue(record.price));
+        setFormOriginalPrice(record.originalPrice ? formatVndInputValue(record.originalPrice) : '');
         setFormStock(record.stock.toString());
         setFormStatus(record.status);
         setFormNote(record.note || '');
@@ -255,17 +354,16 @@ export default function PricingPage() {
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string>>) => {
-    const val = e.target.value.replace(/\D/g, '');
-    setter(val ? new Intl.NumberFormat('vi-VN').format(parseInt(val, 10)) : '');
+    setter(formatVndInput(e.target.value));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedDates.size === 0) return;
 
     const newErrors: Record<string, string> = {};
-    const priceNum = parseInt(formPrice.replace(/\./g, ''));
-    const originalPriceNum = formOriginalPrice ? parseInt(formOriginalPrice.replace(/\./g, '')) : null;
+    const priceNum = parseVndInput(formPrice);
+    const originalPriceNum = formOriginalPrice ? parseVndInput(formOriginalPrice) : null;
     const stockNum = parseInt(formStock);
 
     if (formStatus === 'OPEN' && (!formPrice || isNaN(priceNum))) {
@@ -286,32 +384,74 @@ export default function PricingPage() {
       return;
     }
 
-    const newData = { ...pricingData };
-    selectedDates.forEach(dateStr => {
-      const key = getRecordKey(dateStr);
-      newData[key] = {
-        productId: selectedProduct,
-        optionId: selectedOption,
-        date: dateStr,
-        price: isNaN(priceNum) ? 0 : priceNum,
-        originalPrice: originalPriceNum,
-        stock: formStatus === 'FULL' ? 0 : stockNum,
-        status: formStatus,
-        note: formNote
-      };
-    });
+    const selectedCount = selectedDates.size;
+    const records = Array.from(selectedDates).map(dateStr => ({
+      product_id: selectedProduct,
+      ticket_type_id: selectedOption,
+      date: dateStr,
+      price: formStatus === 'OPEN' ? priceNum : 0,
+      original_price: formStatus === 'OPEN' && originalPriceNum ? originalPriceNum : null,
+      stock: formStatus === 'FULL' ? 0 : stockNum,
+      status: formStatus,
+      note: formNote.trim() || null,
+    }));
 
-    setPricingData(newData);
-    setErrors({});
-    setSelectedDates(new Set());
-    resetForm();
-    
-    setToastMessage({
-      title: 'Cập nhật thành công',
-      message: `Đã lưu cài đặt giá cho ${selectedDates.size} ngày.`
-    });
-    
-    setTimeout(() => setToastMessage(null), 3000);
+    setIsLoading(true);
+    try {
+      await axiosClient.post('/pricing/bulk', { records });
+      await loadPricing();
+      setErrors({});
+      setSelectedDates(new Set());
+      resetForm();
+      setToastMessage({
+        title: 'Cập nhật thành công',
+        message: `Đã lưu cài đặt giá cho ${selectedCount} ngày.`
+      });
+    } catch (error: any) {
+      setToastMessage({
+        title: 'Lỗi lưu lịch giá',
+        message: error.response?.data?.detail || 'Không thể lưu lịch giá. Vui lòng thử lại.',
+        type: 'error',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteSelected = async () => {
+    const recordsToDelete = Array.from(selectedDates)
+      .map(dateStr => pricingData[getRecordKey(dateStr)])
+      .filter((record): record is PricingRecord => Boolean(record?.id));
+
+    if (recordsToDelete.length === 0) {
+      setToastMessage({
+        title: 'Chưa có lịch giá',
+        message: 'Các ngày đang chọn chưa có lịch giá để xóa.',
+        type: 'error',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await Promise.all(recordsToDelete.map(record => axiosClient.delete(`/pricing/${record.id}`)));
+      await loadPricing();
+      setSelectedDates(new Set());
+      resetForm();
+      setToastMessage({
+        title: 'Đã xóa lịch giá',
+        message: `Đã xóa ${recordsToDelete.length} cấu hình lịch giá.`,
+        type: 'delete',
+      });
+    } catch (error: any) {
+      setToastMessage({
+        title: 'Lỗi xóa lịch giá',
+        message: error.response?.data?.detail || 'Không thể xóa lịch giá đã chọn.',
+        type: 'error',
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStatusColorInfo = (status: string) => {
@@ -325,22 +465,7 @@ export default function PricingPage() {
 
   return (
     <div className="p-6 h-full flex flex-col bg-slate-50 relative">
-      {toastMessage && (
-        <div className="fixed top-6 right-6 z-[100] bg-white border-l-4 border-[#0084ff] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)] rounded-lg p-4 w-[320px] animate-in slide-in-from-right duration-300">
-          <div className="flex items-start gap-3">
-            <div className="bg-blue-50 text-[#0084ff] p-1.5 rounded-full shrink-0">
-              <CheckCircle className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-[14px] font-bold text-slate-800">{toastMessage.title}</h4>
-              <p className="text-[13px] text-slate-500 mt-0.5">{toastMessage.message}</p>
-            </div>
-            <button onClick={() => setToastMessage(null)} className="ml-auto text-slate-400 hover:text-slate-600">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <Toast toast={toastMessage} onClose={() => setToastMessage(null)} />
 
       <div className="mb-6">
         <h1 className="text-[24px] font-bold text-slate-800">Quản lý Lịch & Giá</h1>
@@ -352,16 +477,16 @@ export default function PricingPage() {
           <CustomDropdown 
             label="Sản phẩm"
             value={selectedProduct}
-            options={MOCK_PRODUCTS}
+            options={productOptions}
             onChange={setSelectedProduct}
             placeholder="Chọn sản phẩm"
           />
           
-          {selectedProduct && MOCK_OPTIONS[selectedProduct] && (
+          {selectedProduct && selectedTicketOptions.length > 0 && (
             <CustomDropdown 
               label="Loại vé / Tùy chọn"
               value={selectedOption}
-              options={MOCK_OPTIONS[selectedProduct]}
+              options={selectedTicketOptions}
               onChange={setSelectedOption}
               placeholder="Chọn loại vé"
             />
@@ -579,6 +704,7 @@ export default function PricingPage() {
                           type="text" 
                           value={formPrice}
                           onChange={(e) => { handlePriceChange(e, setFormPrice); if(errors.price) setErrors({...errors, price: ''}); }}
+                          onBlur={() => setFormPrice(formatVndInputValue(formPrice))}
                           placeholder="Ví dụ: 900.000"
                           disabled={formStatus !== 'OPEN'}
                           className={`w-full border rounded-lg p-3 pr-8 text-[14px] outline-none transition-colors 
@@ -597,6 +723,7 @@ export default function PricingPage() {
                           type="text" 
                           value={formOriginalPrice}
                           onChange={(e) => { handlePriceChange(e, setFormOriginalPrice); if(errors.originalPrice) setErrors({...errors, originalPrice: ''}); }}
+                          onBlur={() => setFormOriginalPrice(formatVndInputValue(formOriginalPrice))}
                           placeholder="Nếu có giảm giá"
                           disabled={formStatus !== 'OPEN'}
                           className={`w-full border rounded-lg p-3 pr-8 text-[14px] outline-none transition-colors 
@@ -638,6 +765,13 @@ export default function PricingPage() {
                   <div className="mt-4 flex gap-3">
                     <button type="submit" className="flex-1 bg-[#ff5b00] hover:bg-[#e65200] text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
                       <Save className="w-4 h-4" /> Lưu cài đặt ({selectedDates.size} ngày)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteSelected}
+                      className="px-4 py-3 rounded-lg border border-red-200 bg-red-50 text-red-600 text-[13px] font-bold hover:bg-red-100 transition-colors"
+                    >
+                      Xóa
                     </button>
                   </div>
                 </form>

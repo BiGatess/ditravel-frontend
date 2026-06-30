@@ -101,7 +101,7 @@ export default function LoginForm() {
           <label className="block text-sm font-semibold text-slate-700 flex items-center gap-2">
              Mật khẩu
           </label>
-          <a href="#" className="text-sm font-medium text-[#0084ff] hover:underline">Quên mật khẩu?</a>
+          <Link to="/forgot-password" className="text-sm font-medium text-[#0084ff] hover:underline">Quên mật khẩu?</Link>
         </div>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">

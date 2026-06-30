@@ -6,6 +6,7 @@ import SearchPage from './pages/SearchPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CheckoutPage from './pages/CheckoutPage';
 import AuthPage from './pages/AuthPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import WishlistPage from './pages/WishlistPage';
 import BlogPage from './pages/BlogPage';
@@ -26,6 +27,9 @@ import PricingPage from './pages/admin/PricingPage';
 import BannersPage from './pages/admin/BannersPage';
 import UsersPage from './pages/admin/UsersPage';
 import ReviewsPage from './pages/admin/ReviewsPage';
+import VouchersPage from './pages/admin/VouchersPage';
+import BlogsPage from './pages/admin/BlogsPage';
+import SettingsPage from './pages/admin/SettingsPage';
 import PlaceholderPage from './pages/admin/PlaceholderPage';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
@@ -49,6 +53,7 @@ export default function App() {
               <Route path="checkout" element={<CheckoutPage />} />
               <Route path="login" element={<AuthPage defaultType="login" />} />
               <Route path="register" element={<AuthPage defaultType="register" />} />
+              <Route path="forgot-password" element={<ForgotPasswordPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="wishlist" element={<WishlistPage />} />
               <Route path="blog" element={<BlogPage />} />
@@ -74,13 +79,13 @@ export default function App() {
               <Route path="ticket-types" element={<PlaceholderPage title="Quản lý Loại vé" />} />
               <Route path="pricing" element={<PricingPage />} />
               <Route path="payments" element={<PlaceholderPage title="Thanh toán SePay" />} />
-              <Route path="vouchers" element={<PlaceholderPage title="Quản lý Voucher" />} />
+              <Route path="vouchers" element={<VouchersPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="reviews" element={<ReviewsPage />} />
-              <Route path="coupons" element={<PlaceholderPage title="Mã giảm giá" />} />
+              <Route path="coupons" element={<VouchersPage />} />
               <Route path="banners" element={<BannersPage />} />
-              <Route path="blogs" element={<PlaceholderPage title="Quản lý Blog" />} />
-              <Route path="settings" element={<PlaceholderPage title="Cài đặt hệ thống" />} />
+              <Route path="blogs" element={<BlogsPage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
           </Route>
         </Routes>
@@ -90,4 +95,3 @@ export default function App() {
 </AdminAuthProvider>
   );
 }
-
