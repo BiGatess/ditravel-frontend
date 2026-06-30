@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
   CircleHelp,
@@ -20,6 +20,7 @@ export default function Header() {
   const [isDestModalOpen, setIsDestModalOpen] = useState(false);
   const { cartBadgeCount } = useCart();
   const { isAuthenticated, user, logout } = useAdminAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleOpen = () => setIsDestModalOpen(true);
@@ -84,7 +85,13 @@ export default function Header() {
                       Quản trị
                     </Link>
                   )}
-                  <button onClick={logout} className="flex items-center gap-1.5 hover:text-[#ff5b00] transition-colors">
+                  <button
+                    onClick={() => {
+                      logout();
+                      navigate('/', { replace: true });
+                    }}
+                    className="flex items-center gap-1.5 hover:text-[#ff5b00] transition-colors"
+                  >
                     <LogOut className={navIconClass} strokeWidth={2.2} /> Đăng xuất
                   </button>
                 </div>

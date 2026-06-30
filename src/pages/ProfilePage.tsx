@@ -1,11 +1,22 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ProfileSidebar from '../components/profile/ProfileSidebar';
 import ProfileInfo from '../components/profile/ProfileInfo';
 import BookingHistory from '../components/profile/BookingHistory';
+import { useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('info');
+  const navigate = useNavigate();
+  const { user, isInitializing } = useAdminAuth();
+
+  useEffect(() => {
+    if (!isInitializing && !user) {
+      navigate('/', { replace: true });
+    }
+  }, [isInitializing, navigate, user]);
 
   return (
     <div className="bg-slate-50 min-h-screen pb-16 pt-8 font-sans">

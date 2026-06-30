@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, ShoppingBag, Heart, LogOut } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
@@ -9,6 +10,7 @@ interface ProfileSidebarProps {
 
 export default function ProfileSidebar({ activeTab, setActiveTab }: ProfileSidebarProps) {
   const { user, logout } = useAdminAuth();
+  const navigate = useNavigate();
   
   const tabs = [
     { id: 'info', label: 'Thông tin cá nhân', icon: User },
@@ -47,7 +49,7 @@ export default function ProfileSidebar({ activeTab, setActiveTab }: ProfileSideb
           <button
             onClick={() => {
               logout();
-              window.location.href = '/login';
+              navigate('/', { replace: true });
             }}
             className="w-full flex items-center gap-3 px-5 py-3.5 text-[14px] text-red-500 hover:bg-red-50 transition-colors mt-2 border-t border-slate-100"
           >
