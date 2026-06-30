@@ -27,19 +27,22 @@ export default function Toast({ toast, onClose }: ToastProps) {
 
   const isError = toast.type === 'error';
   const isDelete = toast.type === 'delete';
-  const borderColor = isError ? '#ef4444' : isDelete ? '#f97316' : '#0084ff';
-  const titleColor = isError ? 'text-red-600' : isDelete ? 'text-orange-600' : 'text-[#0084ff]';
-  const accentBar = isError ? 'bg-red-500' : isDelete ? 'bg-orange-500' : 'bg-[#0084ff]';
+  const borderColor = isError ? '#ef4444' : isDelete ? '#f97316' : '#22c55e';
+  const bgColor = isError ? 'bg-red-50' : isDelete ? 'bg-orange-50' : 'bg-emerald-50';
+  const titleColor = isError ? 'text-red-700' : isDelete ? 'text-orange-700' : 'text-emerald-700';
+  const messageColor = isError ? 'text-red-700/80' : isDelete ? 'text-orange-700/80' : 'text-emerald-700/80';
 
   return (
     <div
-      className="fixed top-6 right-6 z-[100] w-[340px] overflow-hidden rounded-xl border bg-white shadow-[0_14px_40px_-16px_rgba(15,23,42,0.35)] animate-in fade-in slide-in-from-right-4 zoom-in-95 duration-300"
-      style={{ borderLeft: `4px solid ${borderColor}` }}
+      className={`fixed top-4 right-4 z-[100] w-[280px] overflow-hidden rounded-lg border px-3 py-2.5 ${bgColor} animate-in fade-in slide-in-from-right-3 duration-200`}
+      style={{ borderColor }}
     >
-      <div className={`h-1 w-full ${accentBar}`} />
-      <div className="px-4 py-3">
-        <h4 className={`text-[14px] font-bold ${titleColor}`}>{toast.title}</h4>
-        <p className="mt-1 text-[13px] leading-5 text-slate-600">{toast.message}</p>
+      <div className="flex items-start gap-2">
+        <div className={`mt-1 h-2 w-2 rounded-full shrink-0 ${isError ? 'bg-red-500' : isDelete ? 'bg-orange-500' : 'bg-emerald-500'}`} />
+        <div className="min-w-0 flex-1">
+          <h4 className={`text-[13px] font-semibold leading-5 ${titleColor}`}>{toast.title}</h4>
+          <p className={`mt-0.5 text-[12px] leading-5 ${messageColor}`}>{toast.message}</p>
+        </div>
       </div>
     </div>
   );
