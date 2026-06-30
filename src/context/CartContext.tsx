@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { normalizeVndAmount } from '../utils/currency';
 
 export type CartItem = {
   id: string | number;
@@ -38,7 +39,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems(curr => curr.filter(item => item.id !== id));
   };
 
-  const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalPrice = cartItems.reduce((sum, item) => sum + normalizeVndAmount(item.price) * item.quantity, 0);
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const cartBadgeCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 

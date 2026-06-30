@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Heart, Trash2, MapPin } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
+import { formatVnd } from '../utils/currency';
 
 export default function WishlistPage() {
   const { wishlist, removeFromWishlist } = useWishlist();
@@ -82,7 +83,7 @@ export default function WishlistPage() {
                       <div className="mt-auto pt-4 border-t border-slate-100 flex items-center justify-between">
                         <div className="text-[12px] text-slate-500">Giá từ</div>
                         <div className="font-bold text-[#ff5b00] text-[18px]">
-                          {item.price.toLocaleString('vi-VN')} <span className="text-[13px] underline font-normal">đ</span>
+                          {formatVnd(item.price).replace(' đ', '')} <span className="text-[13px] underline font-normal">đ</span>
                         </div>
                       </div>
                     </div>

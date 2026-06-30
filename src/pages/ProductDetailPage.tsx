@@ -10,6 +10,7 @@ import { motion } from 'motion/react';
 import { useWishlist } from '../context/WishlistContext';
 import PackageSelectionWidget from '../components/product/PackageSelectionWidget';
 import axiosClient from '../api/axios';
+import { normalizeVndAmount } from '../utils/currency';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
@@ -56,10 +57,10 @@ export default function ProductDetailPage() {
         const combinedGallery = Array.from(new Set([...prodGallery, ...placeGallery]));
         const activeTicketTypes = (data.ticket_types || []).filter((ticket: any) => ticket.is_active !== false);
         const ticketPrices = activeTicketTypes
-          .map((ticket: any) => Number(ticket.price))
+          .map((ticket: any) => normalizeVndAmount(ticket.price))
           .filter((price: number) => price > 0);
-        const startingPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : Number(data.price || 0);
-        const startingTicket = activeTicketTypes.find((ticket: any) => Number(ticket.price) === startingPrice);
+        const startingPrice = ticketPrices.length > 0 ? Math.min(...ticketPrices) : normalizeVndAmount(data.price);
+        const startingTicket = activeTicketTypes.find((ticket: any) => normalizeVndAmount(ticket.price) === startingPrice);
         
         setProductData({
           id: data.id,
@@ -67,7 +68,7 @@ export default function ProductDetailPage() {
           image: data.image || 'https://images.unsplash.com/photo-1544735716-3920e6e41540?w=1200&q=80',
           price: startingPrice,
           description: data.description,
-          oldPrice: startingTicket?.original_price ? Number(startingTicket.original_price) : null,
+          oldPrice: startingTicket?.original_price ? normalizeVndAmount(startingTicket.original_price) : null,
           startingTicketName: startingTicket?.name || '',
           highlights: data.highlights,
           terms: data.terms,

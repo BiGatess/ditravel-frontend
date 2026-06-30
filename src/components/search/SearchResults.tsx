@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star, Clock, CalendarDays } from 'lucide-react';
+import { formatVnd } from '../../utils/currency';
 
 interface SearchResultsProps {
   products: any[];
@@ -107,12 +108,12 @@ export default function SearchResults({ products, sortBy, setSortBy }: SearchRes
                  <div className="text-right w-full mt-2 sm:mt-auto">
                     <div className="text-[12px] text-slate-500 mb-1 text-right w-full">Giá từ</div>
                     <div className="font-normal text-[#ff5b00] text-[24px] leading-tight flex justify-end items-start gap-1">
-                      {Number(product.price).toLocaleString('vi-VN')}
+                      {formatVnd(product.price).replace(' đ', '')}
                       <span className="text-[14px] underline font-normal mt-1">đ</span>
                     </div>
                     {product.oldPrice && (
                       <div className="text-[13px] text-slate-400 line-through mt-1 text-right w-full">
-                        {Number(product.oldPrice).toLocaleString('vi-VN')} đ
+                        {formatVnd(product.oldPrice)}
                       </div>
                     )}
                  </div>

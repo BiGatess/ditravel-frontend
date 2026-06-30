@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Star, Ticket, ThumbsUp, MessageSquare, CreditCard, Headset, ChevronRight, ChevronLeft, Search, Calendar, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import axiosClient from '../api/axios';
+import { normalizeVndAmount } from '../utils/currency';
 
 const DEFAULT_HERO_IMAGES = [
   "https://images.unsplash.com/photo-1518342426992-69cf613c2db7?auto=format&fit=crop&q=80&w=2000",
@@ -173,12 +174,13 @@ export default function HomePage() {
     return products.filter(p => p.is_active).map(prod => {
       const place = places.find(p => p.id === prod.place_id);
       const province = provinces.find(p => p.id === place?.province_id);
+      const price = normalizeVndAmount(prod.price);
       return {
         ...prod,
         name: prod.title,
         img: prod.image || 'https://images.unsplash.com/photo-1544735716-3920e6e41540?w=800&q=80',
-        oldPrice: (Number(prod.price) * 1.2).toLocaleString('vi-VN'),
-        price: Number(prod.price).toLocaleString('vi-VN'),
+        oldPrice: (price * 1.2).toLocaleString('vi-VN'),
+        price: price.toLocaleString('vi-VN'),
         reviews: prod.reviews || Math.floor(Math.random() * 500) + 50,
         rating: prod.rating || Number((4.5 + Math.random() * 0.5).toFixed(1)),
         delivery: 'Xác nhận ngay',

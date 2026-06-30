@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ScanLine, Trash2, Minus, Plus } from 'lucide-react';
 import { motion } from 'motion/react';
+import { formatVnd } from '../../utils/currency';
 
 interface CartStepProps {
   cartItems: any[];
@@ -60,7 +61,7 @@ export default function CartStep({
               
               <div className="mt-auto flex flex-col sm:flex-row sm:items-end justify-between items-start gap-4 flex-wrap pt-4">
                 <div className="text-[17px] sm:text-[19px] font-bold text-[#ff5b00]">
-                  {(item.price).toLocaleString('vi-VN')} <span className="text-[14px] font-medium underline relative -top-0.5 ml-0.5 text-slate-500">đ</span>
+                  {formatVnd(item.price).replace(' đ', '')} <span className="text-[14px] font-medium underline relative -top-0.5 ml-0.5 text-slate-500">đ</span>
                 </div>
                 
                 <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden h-9 bg-slate-50/50 shadow-sm">

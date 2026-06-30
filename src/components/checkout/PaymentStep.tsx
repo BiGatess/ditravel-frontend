@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { AlertCircle, ChevronLeft, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { normalizeVndAmount } from '../../utils/currency';
 
 interface PaymentStepProps {
   contactInfo: { name: string; phone: string; email: string; address: string };
@@ -117,7 +118,7 @@ export default function PaymentStep({
                         {item.quantity} người lớn
                       </div>
                       <div className="text-[14px] font-medium text-slate-800 mt-2">
-                        Tổng tạm: <span className="text-slate-800">{(item.price * item.quantity).toLocaleString('vi-VN')} đ</span>
+                        Tổng tạm: <span className="text-slate-800">{(normalizeVndAmount(item.price) * item.quantity).toLocaleString('vi-VN')} đ</span>
                       </div>
                     </div>
                   </div>

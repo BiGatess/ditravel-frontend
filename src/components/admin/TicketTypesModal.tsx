@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Plus, Edit, Trash2, AlertTriangle, CheckCircle, Ticket } from 'lucide-react';
 import axiosClient from '../../api/axios';
+import { formatVnd, formatVndInput, formatVndInputValue, parseVndInput } from '../../utils/currency';
 
 type TicketTypesModalProps = {
   product: any;
@@ -45,8 +46,8 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
     setEditingTicket(ticket);
     setName(ticket?.name || defaultName);
     setDescription(ticket?.description || '');
-    setPrice(ticket?.price ? new Intl.NumberFormat('vi-VN').format(ticket.price) : '');
-    setOriginalPrice(ticket?.original_price ? new Intl.NumberFormat('vi-VN').format(ticket.original_price) : '');
+    setPrice(ticket?.price ? formatVndInputValue(ticket.price) : '');
+    setOriginalPrice(ticket?.original_price ? formatVndInputValue(ticket.original_price) : '');
     setMinQuantity(ticket?.min_quantity || 1);
     setMaxQuantity(ticket?.max_quantity || 10);
     setIsActive(ticket ? ticket.is_active : true);
@@ -60,13 +61,7 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string>>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (!value) {
-      setter('');
-      return;
-    }
-    const formatted = new Intl.NumberFormat('vi-VN').format(parseInt(value, 10));
-    setter(formatted);
+    setter(formatVndInput(e.target.value));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -80,8 +75,8 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
        return;
     }
     
-    const priceNum = parseInt(price.replace(/\./g, ''));
-    const origPriceNum = originalPrice ? parseInt(originalPrice.replace(/\./g, '')) : null;
+    const priceNum = parseVndInput(price);
+    const origPriceNum = originalPrice ? parseVndInput(originalPrice) : null;
 
     try {
       const payload = {
@@ -123,9 +118,9 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
 
   const activeTicketPrices = ticketTypes
     .filter(ticket => ticket.is_active !== false)
-    .map(ticket => Number(ticket.price))
+    .map(ticket => parseVndInput(ticket.price))
     .filter(price => price > 0);
-  const startingPrice = activeTicketPrices.length > 0 ? Math.min(...activeTicketPrices) : Number(product.price || 0);
+  const startingPrice = activeTicketPrices.length > 0 ? Math.min(...activeTicketPrices) : parseVndInput(product.price);
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -139,7 +134,7 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
             </h2>
             <p className="text-[13px] text-slate-500 mt-0.5">Sản phẩm: {product.title}</p>
             <p className="text-[12px] text-slate-500 mt-1">
-              Giá từ đang dùng trên web: <span className="font-bold text-[#ff5b00]">{startingPrice > 0 ? `${startingPrice.toLocaleString('vi-VN')} đ` : 'Chưa có giá'}</span>
+              Giá từ đang dùng trên web: <span className="font-bold text-[#ff5b00]">{startingPrice > 0 ? formatVnd(startingPrice) : 'Chưa có giá'}</span>
             </p>
           </div>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
@@ -197,8 +192,8 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
                         <div className="text-[12px] text-slate-500 line-clamp-1">{ticket.description || 'Không có mô tả'}</div>
                       </div>
                       <div className="text-right">
-                        <div className="font-bold text-[#ff5b00]">{ticket.price.toLocaleString('vi-VN')} đ</div>
-                        {ticket.original_price && <div className="text-[11px] text-slate-400 line-through">{ticket.original_price.toLocaleString('vi-VN')} đ</div>}
+                        <div className="font-bold text-[#ff5b00]">{formatVnd(ticket.price)}</div>
+                        {ticket.original_price && <div className="text-[11px] text-slate-400 line-through">{formatVnd(ticket.original_price)}</div>}
                       </div>
                       <div className="flex items-center gap-2 border-l border-slate-100 pl-4 ml-2">
                         <button 
@@ -242,7 +237,8 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
                       type="text" 
                       value={price}
                       onChange={(e) => { handlePriceChange(e, setPrice); if(errors.price) setErrors({...errors, price: ''}); }}
-                      placeholder="VD: 500.000" 
+                      onBlur={() => setPrice(formatVndInputValue(price))}
+                      placeholder="VD: 500.000 hoặc 500" 
                       className="w-full border border-slate-300 rounded-lg p-2.5 text-[14px] outline-none transition-colors focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]"
                     />
                     {errors.price && <div className="text-red-500 text-[12px] mt-1">{errors.price}</div>}
@@ -253,7 +249,8 @@ export default function TicketTypesModal({ product, onClose, onChanged }: Ticket
                       type="text" 
                       value={originalPrice}
                       onChange={(e) => handlePriceChange(e, setOriginalPrice)}
-                      placeholder="VD: 600.000" 
+                      onBlur={() => setOriginalPrice(formatVndInputValue(originalPrice))}
+                      placeholder="VD: 600.000 hoặc 600" 
                       className="w-full border border-slate-300 rounded-lg p-2.5 text-[14px] outline-none transition-colors focus:border-[#0084ff]"
                     />
                   </div>

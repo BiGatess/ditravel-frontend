@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, Info, Minus, Plus, ShoppingCart, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCart } from '../../context/CartContext';
+import { formatVnd, normalizeVndAmount } from '../../utils/currency';
 
 type TicketType = {
   id: string;
@@ -37,7 +38,7 @@ const nextDays = Array.from({ length: 3 }).map((_, i) => {
   };
 });
 
-const formatCurrency = (value: number) => `${value.toLocaleString('vi-VN')} đ`;
+const formatCurrency = (value: number) => formatVnd(value);
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr);
@@ -67,8 +68,8 @@ export default function PackageSelectionWidget({ ticketTypes = [], product }: Pa
         name: ticket.name,
         description: ticket.description || '',
         includes: ticket.description ? ticket.description.split('\n').filter(Boolean) : [],
-        price: Number(ticket.price || 0),
-        originalPrice: ticket.original_price ? Number(ticket.original_price) : null,
+        price: normalizeVndAmount(ticket.price),
+        originalPrice: ticket.original_price ? normalizeVndAmount(ticket.original_price) : null,
         minQuantity: Number(ticket.min_quantity || 1),
         maxQuantity: Number(ticket.max_quantity || 10)
       }))

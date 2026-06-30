@@ -16,6 +16,7 @@ const CATEGORIES = [
 
 import axiosClient from '../../api/axios';
 import Toast, { ToastMessage, ToastType } from '../../components/admin/Toast';
+import { formatVnd, formatVndInput, formatVndInputValue, parseVndInput } from '../../utils/currency';
 
 const MOCK_PLACES: any[] = [];
 
@@ -364,7 +365,7 @@ export default function ProductsPage() {
     setModalPlace(prod?.place_id || '');
     setModalCategory(prod?.category || 'TOUR');
     
-    setModalPrice(prod?.price ? new Intl.NumberFormat('vi-VN').format(prod.price) : '');
+    setModalPrice(prod?.price ? formatVndInputValue(prod.price) : '');
     setModalOriginalPrice(''); // Không có originalPrice trong DB
     setModalIsFeatured(prod?.is_featured || false);
     setModalStatus(prod ? (prod.is_active ? 'active' : 'hidden') : 'active');
@@ -385,8 +386,8 @@ export default function ProductsPage() {
     const existingTickets = prod?.ticket_types?.map((tt: any) => ({
       name: tt.name || '',
       description: tt.description || '',
-      price: tt.price ? Number(tt.price).toString() : '',
-      original_price: tt.original_price ? Number(tt.original_price).toString() : '',
+      price: tt.price ? formatVndInputValue(tt.price) : '',
+      original_price: tt.original_price ? formatVndInputValue(tt.original_price) : '',
       min_quantity: tt.min_quantity || 1,
       max_quantity: tt.max_quantity || 10,
       is_active: tt.is_active !== false
@@ -403,18 +404,11 @@ export default function ProductsPage() {
   };
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>, setter: React.Dispatch<React.SetStateAction<string>>) => {
-    const value = e.target.value.replace(/\D/g, '');
-    if (!value) {
-      setter('');
-      return;
-    }
-    const formatted = new Intl.NumberFormat('vi-VN').format(parseInt(value, 10));
-    setter(formatted);
+    setter(formatVndInput(e.target.value));
   };
 
   const parsePriceValue = (value: any) => {
-    const raw = String(value ?? '').replace(/\D/g, '');
-    return raw ? parseInt(raw, 10) : 0;
+    return parseVndInput(value);
   };
 
   const getModalActiveTicketPrices = () => modalTicketTypes
@@ -512,17 +506,17 @@ export default function ProductsPage() {
   }, [toastMessage]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+    return formatVnd(price);
   };
 
   const getProductTicketPrices = (prod: any) => (prod.ticket_types || [])
     .filter((ticket: any) => ticket.is_active !== false)
-    .map((ticket: any) => Number(ticket.price))
+    .map((ticket: any) => parseVndInput(ticket.price))
     .filter((price: number) => price > 0);
 
   const getProductStartingPrice = (prod: any) => {
     const ticketPrices = getProductTicketPrices(prod);
-    return ticketPrices.length > 0 ? Math.min(...ticketPrices) : Number(prod.price || 0);
+    return ticketPrices.length > 0 ? Math.min(...ticketPrices) : parseVndInput(prod.price);
   };
 
   const modalDisplayPrice = getModalDisplayPrice();
@@ -864,8 +858,9 @@ export default function ProductsPage() {
                     <div className="relative">
                         <input 
                         type="text" 
-                        value={modalHasTicketPrice ? new Intl.NumberFormat('vi-VN').format(modalDisplayPrice) : modalPrice}
+                        value={modalHasTicketPrice ? formatVndInputValue(modalDisplayPrice) : modalPrice}
                         onChange={(e) => { handlePriceChange(e, setModalPrice); if(errors.price) setErrors({...errors, price: ''}); }}
+                        onBlur={() => setModalPrice(formatVndInputValue(modalPrice))}
                         disabled={modalHasTicketPrice}
                         placeholder="Ví dụ: 1.500.000" 
                         className={`w-full border rounded-lg p-3 pr-10 text-[14px] outline-none transition-colors ${modalHasTicketPrice ? 'bg-slate-50 text-slate-500 cursor-not-allowed' : ''} ${errors.price ? 'border-red-500 focus:ring-1 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]'}`}
@@ -1036,28 +1031,38 @@ export default function ProductsPage() {
                               <div>
                                 <label className="text-[11px] font-bold text-slate-500 mb-1 block">Giá bán (đ)</label>
                                 <input
-                                  type="number"
+                                  type="text"
                                   value={tt.price}
                                   onChange={e => {
                                     const updated = [...modalTicketTypes];
-                                    updated[idx].price = e.target.value;
+                                    updated[idx].price = formatVndInput(e.target.value);
                                     setModalTicketTypes(updated);
                                   }}
-                                  placeholder="0"
+                                  onBlur={() => {
+                                    const updated = [...modalTicketTypes];
+                                    updated[idx].price = formatVndInputValue(updated[idx].price);
+                                    setModalTicketTypes(updated);
+                                  }}
+                                  placeholder="80.000 hoặc 80"
                                   className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]"
                                 />
                               </div>
                               <div>
                                 <label className="text-[11px] font-bold text-slate-500 mb-1 block">Giá gốc (đ) <span className="text-slate-400 font-normal">(tùy chọn)</span></label>
                                 <input
-                                  type="number"
+                                  type="text"
                                   value={tt.original_price}
                                   onChange={e => {
                                     const updated = [...modalTicketTypes];
-                                    updated[idx].original_price = e.target.value;
+                                    updated[idx].original_price = formatVndInput(e.target.value);
                                     setModalTicketTypes(updated);
                                   }}
-                                  placeholder="0"
+                                  onBlur={() => {
+                                    const updated = [...modalTicketTypes];
+                                    updated[idx].original_price = formatVndInputValue(updated[idx].original_price);
+                                    setModalTicketTypes(updated);
+                                  }}
+                                  placeholder="100.000 hoặc 100"
                                   className="w-full border border-slate-300 rounded-lg p-2.5 text-[13px] outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]"
                                 />
                               </div>

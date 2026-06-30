@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import SearchFilters from '../components/search/SearchFilters';
 import SearchResults from '../components/search/SearchResults';
 import axiosClient from '../api/axios';
+import { normalizeVndAmount } from '../utils/currency';
 
 export default function SearchPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -61,11 +62,13 @@ export default function SearchPage() {
     return products.filter(p => p.is_active).map(prod => {
       const place = places.find(p => p.id === prod.place_id);
       const province = provinces.find(p => p.id === place?.province_id);
+      const price = normalizeVndAmount(prod.price);
       return {
         ...prod,
+        price,
         name: prod.title,
         thumbnail: prod.image || 'https://images.unsplash.com/photo-1544735716-3920e6e41540?w=800&q=80',
-        oldPrice: prod.price * 1.2,
+        oldPrice: price * 1.2,
         discount: '17%',
         reviews: prod.reviews || Math.floor(Math.random() * 500) + 50,
         rating: prod.rating || Number((4.5 + Math.random() * 0.5).toFixed(1)),
