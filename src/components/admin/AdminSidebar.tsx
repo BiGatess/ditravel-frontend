@@ -1,7 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import {
-  BadgePercent,
   CalendarDays,
   CreditCard,
   FileText,
@@ -32,7 +31,6 @@ export default function AdminSidebar() {
     { title: 'Quản lý Voucher', path: '/admin/vouchers', icon: Gift },
     { title: 'Quản lý Khách hàng', path: '/admin/users', icon: UsersRound },
     { title: 'Quản lý Đánh giá', path: '/admin/reviews', icon: MessageSquareText },
-    { title: 'Mã giảm giá', path: '/admin/coupons', icon: BadgePercent },
     { title: 'Quản lý Banner', path: '/admin/banners', icon: ImageIcon },
     { title: 'Quản lý Blog', path: '/admin/blogs', icon: FileText },
     { title: 'Cài đặt hệ thống', path: '/admin/settings', icon: Settings2 },

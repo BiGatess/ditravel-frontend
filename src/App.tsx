@@ -82,7 +82,7 @@ export default function App() {
               <Route path="vouchers" element={<VouchersPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="reviews" element={<ReviewsPage />} />
-              <Route path="coupons" element={<VouchersPage />} />
+              <Route path="coupons" element={<Navigate to="/admin/vouchers" replace />} />
               <Route path="banners" element={<BannersPage />} />
               <Route path="blogs" element={<BlogsPage />} />
               <Route path="settings" element={<SettingsPage />} />
