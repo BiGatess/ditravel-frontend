@@ -4,6 +4,15 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 import CartStep from '../components/checkout/CartStep';
 import PaymentStep from '../components/checkout/PaymentStep';
 import SuccessStep from '../components/checkout/SuccessStep';
+import axiosClient from '../api/axios';
+
+const toBoolean = (value: any, fallback = true) => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'number') return value !== 0;
+  if (typeof value === 'string') return value.toLowerCase() === 'true' || value === '1' || value.toLowerCase() === 'yes';
+  return fallback;
+};
 
 export default function CheckoutPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -11,6 +20,20 @@ export default function CheckoutPage() {
   const [isPaid, setIsPaid] = useState(false);
   const [contactInfo, setContactInfo] = useState({ name: '', phone: '', email: '', address: '' });
   const [errors, setErrors] = useState({ name: '', phone: '', email: '' });
+  const [paymentConfig, setPaymentConfig] = useState({
+    enabled: true,
+    bank_code: 'VCB',
+    bank_name: 'Vietcombank',
+    account_number: '0071001060528',
+    account_name: 'CT TNHH DI VUI',
+    transfer_note_prefix: '119123',
+    qr_template: 'compact2',
+    webhook_url: '',
+    webhook_secret: '',
+    support_phone: '1900 0000',
+    support_email: 'hotro@ditravel.com',
+    description: '',
+  });
 
   const { user } = useAdminAuth();
   const { cartItems, updateQuantity, removeRow, totalItems, totalPrice } = useCart();
@@ -25,6 +48,39 @@ export default function CheckoutPage() {
       address: prev.address || user.address || '',
     }));
   }, [user]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPaymentConfig = async () => {
+      try {
+        const res = await axiosClient.get(
+          '/settings/public?keys=sepay.enabled,sepay.bank_code,sepay.bank_name,sepay.account_number,sepay.account_name,sepay.transfer_note_prefix,sepay.qr_template,sepay.webhook_url,sepay.webhook_secret,sepay.support_phone,sepay.support_email,sepay.description'
+        );
+        if (!isMounted) return;
+        setPaymentConfig(prev => ({
+          ...prev,
+          enabled: toBoolean(res.data['sepay.enabled'], prev.enabled),
+          bank_code: res.data['sepay.bank_code'] || prev.bank_code,
+          bank_name: res.data['sepay.bank_name'] || prev.bank_name,
+          account_number: res.data['sepay.account_number'] || prev.account_number,
+          account_name: res.data['sepay.account_name'] || prev.account_name,
+          transfer_note_prefix: res.data['sepay.transfer_note_prefix'] || prev.transfer_note_prefix,
+          qr_template: res.data['sepay.qr_template'] || prev.qr_template,
+          webhook_url: res.data['sepay.webhook_url'] || prev.webhook_url,
+          webhook_secret: res.data['sepay.webhook_secret'] || prev.webhook_secret,
+          support_phone: res.data['sepay.support_phone'] || prev.support_phone,
+          support_email: res.data['sepay.support_email'] || prev.support_email,
+          description: res.data['sepay.description'] || prev.description,
+        }));
+      } catch {
+        // Use defaults if config is missing or the public endpoint is unavailable.
+      }
+    };
+    fetchPaymentConfig();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handlePayment = () => {
     let newErrors = { name: '', phone: '', email: '' };
@@ -109,6 +165,7 @@ export default function CheckoutPage() {
             contactInfo={contactInfo}
             cartItems={cartItems}
             totalPrice={totalPrice}
+            paymentConfig={paymentConfig}
           />
         )}
 

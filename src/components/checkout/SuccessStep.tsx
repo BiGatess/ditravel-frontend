@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Clock, CheckCircle2, AlertCircle, Download } from 'lucide-react';
+import { Mail, Clock, CheckCircle2, AlertCircle, Download, QrCode } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface SuccessStepProps {
@@ -9,6 +9,20 @@ interface SuccessStepProps {
   contactInfo: { name: string; phone: string; email: string; address: string };
   cartItems: any[];
   totalPrice: number;
+  paymentConfig: {
+    enabled: boolean;
+    bank_code: string;
+    bank_name: string;
+    account_number: string;
+    account_name: string;
+    transfer_note_prefix: string;
+    qr_template: string;
+    webhook_url: string;
+    webhook_secret: string;
+    support_phone: string;
+    support_email: string;
+    description: string;
+  };
 }
 
 export default function SuccessStep({
@@ -16,9 +30,15 @@ export default function SuccessStep({
   setIsPaid,
   contactInfo,
   cartItems,
-  totalPrice
+  totalPrice,
+  paymentConfig
 }: SuccessStepProps) {
-  const qrUrl = `https://img.vietqr.io/image/vcb-0071001060528-compact2.png?amount=${totalPrice}&addInfo=119123%20${encodeURIComponent(contactInfo.name || "Nguyen Van Kien")}&accountName=CT%20TNHH%20DI%20VUI`;
+  const bankCode = paymentConfig.bank_code || 'VCB';
+  const accountNumber = paymentConfig.account_number || '0071001060528';
+  const qrTemplate = paymentConfig.qr_template || 'compact2';
+  const accountName = paymentConfig.account_name || 'CT TNHH DI VUI';
+  const notePrefix = paymentConfig.transfer_note_prefix || '119123';
+  const qrUrl = `https://img.vietqr.io/image/${bankCode}-${accountNumber}-${qrTemplate}.png?amount=${totalPrice}&addInfo=${encodeURIComponent(`${notePrefix} ${contactInfo.name || 'Nguyen Van Kien'}`)}&accountName=${encodeURIComponent(accountName)}`;
 
   const handleDownloadQR = async () => {
     try {
@@ -51,7 +71,7 @@ export default function SuccessStep({
                 <h1 className="text-[26px] font-bold text-slate-800 mb-2">Thanh toán thành công!</h1>
                 <p className="text-[14px] text-slate-600 mb-8">Đơn hàng <strong className="text-slate-800 text-[15px]">119123</strong> đã được thanh toán hoàn tất.</p>
                 
-                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-8 max-w-lg mx-auto text-left shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 mb-8 max-w-lg mx-auto text-left">
                     <div className="flex items-start gap-4 mb-6">
                          <div className="w-10 h-10 rounded-full bg-blue-100 text-[#0084ff] flex items-center justify-center shrink-0">
                             <Mail className="w-5 h-5" />
@@ -64,7 +84,7 @@ export default function SuccessStep({
                          </div>
                     </div>
                     <div className="flex items-start gap-4">
-                         <div className="w-10 h-10 rounded-full bg-orange-100 text-[#ff5b00] flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-orange-100 text-[#ff5b00] flex items-center justify-center shrink-0">
                             <Clock className="w-5 h-5" />
                          </div>
                          <div>
@@ -139,7 +159,7 @@ export default function SuccessStep({
                                <div><span className="text-slate-500 min-w-[70px] inline-block">Nội dung:</span> <strong>119123 {contactInfo.name || "Nguyễn Văn Kiên"}</strong></div>
                             </div>
                          </div>
-                         <div className="border border-slate-200 rounded-lg p-5 flex flex-col items-center justify-center bg-white min-w-[200px]">
+                    <div className="border border-slate-200 rounded-lg p-5 flex flex-col items-center justify-center bg-white min-w-[200px]">
                             <img src={qrUrl} alt="QR Code" className="w-[150px] h-[160px] object-contain mix-blend-multiply cursor-pointer mb-3" onClick={() => setIsPaid(true)} title="Click để mô phỏng quét mã thành công" />
                             <button 
                               onClick={handleDownloadQR}
@@ -212,6 +232,11 @@ export default function SuccessStep({
         </div>
 
         <div className="w-full lg:w-[320px] shrink-0 space-y-6">
+          {!paymentConfig.enabled && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 text-[13px] text-amber-700">
+              SePay đang tắt trong admin. Checkout vẫn hiển thị mẫu thanh toán dự phòng.
+            </div>
+          )}
           <div className="bg-[#f0f9ff] border border-blue-100 rounded-xl p-5">
              <h3 className="font-bold text-[15px] text-slate-800 mb-4">Tại sao đặt vé với Đi Vui</h3>
              <ul className="space-y-4">
@@ -228,6 +253,19 @@ export default function SuccessStep({
                   <div>Chuyên viên người Việt, hỗ trợ tư vấn qua điện thoại, chat, email, zalo...</div>
                </li>
              </ul>
+          </div>
+
+          <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+             <div className="flex items-center gap-2 mb-3">
+               <QrCode className="w-4 h-4 text-[#ff5b00]" />
+               <h3 className="font-bold text-[15px] text-slate-800">SePay</h3>
+             </div>
+             <div className="space-y-2 text-[13px] text-slate-600">
+               <div className="flex justify-between gap-3"><span>Ngân hàng</span><span className="font-semibold text-slate-800">{paymentConfig.bank_name || 'Vietcombank'}</span></div>
+               <div className="flex justify-between gap-3"><span>Tài khoản</span><span className="font-semibold text-slate-800">{accountNumber}</span></div>
+               <div className="flex justify-between gap-3"><span>Chủ TK</span><span className="font-semibold text-slate-800">{accountName}</span></div>
+               <div className="flex justify-between gap-3"><span>Nội dung</span><span className="font-semibold text-slate-800">{notePrefix} + tên khách</span></div>
+             </div>
           </div>
 
           <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">

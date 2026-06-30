@@ -30,6 +30,7 @@ import ReviewsPage from './pages/admin/ReviewsPage';
 import VouchersPage from './pages/admin/VouchersPage';
 import BlogsPage from './pages/admin/BlogsPage';
 import SettingsPage from './pages/admin/SettingsPage';
+import PaymentsPage from './pages/admin/PaymentsPage';
 import PlaceholderPage from './pages/admin/PlaceholderPage';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminProtectedRoute from './components/admin/AdminProtectedRoute';
@@ -78,7 +79,7 @@ export default function App() {
               <Route path="products" element={<ProductsPage />} />
               <Route path="ticket-types" element={<PlaceholderPage title="Quản lý Loại vé" />} />
               <Route path="pricing" element={<PricingPage />} />
-              <Route path="payments" element={<PlaceholderPage title="Thanh toán SePay" />} />
+              <Route path="payments" element={<PaymentsPage />} />
               <Route path="vouchers" element={<VouchersPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="reviews" element={<ReviewsPage />} />
