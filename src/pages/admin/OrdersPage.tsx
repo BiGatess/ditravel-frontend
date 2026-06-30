@@ -6,7 +6,6 @@ import {
 import DateRangePicker from '../../components/admin/DateRangePicker';
 import Toast, { ToastMessage, ToastType } from '../../components/admin/Toast';
 
-// --- MOCK DATA ---
 const ORDER_STATUSES = [
   { value: 'all', label: 'Tất cả' },
   { value: 'pending', label: 'Chờ xác nhận', color: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
@@ -15,18 +14,8 @@ const ORDER_STATUSES = [
   { value: 'cancelled', label: 'Đã hủy', color: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
 ];
 
-const INITIAL_ORDERS = [
-  { id: '#DV89321', bookingDate: '10:24 22/06/2026', useDate: '25/06/2026', customer: { name: 'Nguyễn Văn Anh', email: 'vananh@gmail.com', phone: '0901234567', avatarBg: 'bg-blue-100 text-blue-700' }, product: { name: 'Vé Cáp Treo Bà Nà Hills', type: 'ticket', quantity: 2 }, price: '1.800.000 đ', status: 'paid', paymentMethod: 'Chuyển khoản (Vietcombank)' },
-  { id: '#DV89320', bookingDate: '09:15 22/06/2026', useDate: '22/06/2026', customer: { name: 'Trần Thị Bình', email: 'binhtt@yahoo.com', phone: '0912345678', avatarBg: 'bg-purple-100 text-purple-700' }, product: { name: 'Tour Sài Gòn 1 ngày', type: 'tour', quantity: 1 }, price: '750.000 đ', status: 'pending', paymentMethod: 'Chuyển khoản (Momo)' },
-  { id: '#DV89319', bookingDate: '08:45 22/06/2026', useDate: '28/06/2026', customer: { name: 'Lê Hoàng Cường', email: 'cuong.le@gmail.com', phone: '0987654321', avatarBg: 'bg-orange-100 text-orange-700' }, product: { name: 'Combo Buffet Sun World', type: 'ticket', quantity: 4 }, price: '2.500.000 đ', status: 'completed', paymentMethod: 'Chuyển khoản (MB Bank)' },
-  { id: '#DV89318', bookingDate: '16:30 20/06/2026', useDate: '23/06/2026', customer: { name: 'Phạm Dung', email: 'pham.dung@congty.vn', phone: '0933445566', avatarBg: 'bg-emerald-100 text-emerald-700' }, product: { name: 'Cáp treo Fansipan Sapa', type: 'ticket', quantity: 2 }, price: '1.600.000 đ', status: 'cancelled', paymentMethod: 'Chuyển khoản (Momo)' },
-  { id: '#DV89317', bookingDate: '14:20 20/06/2026', useDate: '30/06/2026', customer: { name: 'Hoàng Thị Yến', email: 'yen.hoang@gmail.com', phone: '0944556677', avatarBg: 'bg-rose-100 text-rose-700' }, product: { name: 'VinWonders Phú Quốc', type: 'ticket', quantity: 3 }, price: '1.950.000 đ', status: 'paid', paymentMethod: 'Chuyển khoản (Techcombank)' },
-  { id: '#DV89316', bookingDate: '11:10 20/06/2026', useDate: '21/06/2026', customer: { name: 'Vũ Đức Phát', email: 'phat.vu@gmail.com', phone: '0909887766', avatarBg: 'bg-indigo-100 text-indigo-700' }, product: { name: 'Tour Đảo Ngọc Phú Quốc', type: 'tour', quantity: 2 }, price: '2.100.000 đ', status: 'completed', paymentMethod: 'Chuyển khoản (Vietcombank)' },
-  { id: '#DV89315', bookingDate: '09:05 20/06/2026', useDate: '24/06/2026', customer: { name: 'Ngô Tấn Tài', email: 'tai.ngo@gmail.com', phone: '0977665544', avatarBg: 'bg-cyan-100 text-cyan-700' }, product: { name: 'Vé Xem Show Ký Ức Hội An', type: 'ticket', quantity: 2 }, price: '1.200.000 đ', status: 'paid', paymentMethod: 'Chuyển khoản (MB Bank)' },
-];
-
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -307,7 +296,9 @@ export default function OrdersPage() {
               }) : (
                 <tr>
                   <td colSpan={6} className="py-10 text-center text-slate-500">
-                    Không tìm thấy đơn hàng nào phù hợp với bộ lọc.
+                    {orders.length === 0
+                      ? 'Chưa có dữ liệu đơn hàng.'
+                      : 'Không tìm thấy đơn hàng nào phù hợp với bộ lọc.'}
                   </td>
                 </tr>
               )}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
-import { Lock, Mail, AlertCircle } from 'lucide-react';
+import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import axiosClient from '../../api/axios';
 
 export default function AdminLoginPage() {
@@ -9,13 +9,14 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login, logout } = useAdminAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!email.trim() || !password.trim()) {
       setError('Vui lòng nhập đầy đủ email và mật khẩu.');
       return;
@@ -24,34 +25,28 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // API FastAPI dùng OAuth2PasswordRequestForm yêu cầu định dạng form-urlencoded
-      // và key phải là 'username', 'password'
       const formData = new URLSearchParams();
       formData.append('username', email);
       formData.append('password', password);
 
       const response = await axiosClient.post('/auth/login', formData, {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
       });
 
-      // Lấy token từ response (Backend trả về `access_token`)
       const token = response.data.access_token;
-      
-      // Lưu token vào Context và LocalStorage
       const currentUser = await login(token);
+
       if (!currentUser || currentUser.user_type !== 'ADMIN') {
         logout();
         setError('Tài khoản này chưa được cấp quyền quản trị.');
         return;
       }
-      
-      // Chuyển hướng vào trang Dashboard
+
       navigate('/admin/dashboard', { replace: true });
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
-        // FastAPI trả về mảng object lỗi nếu 422
         const detail = err.response.data.detail;
         if (Array.isArray(detail)) {
           setError(detail[0].msg || 'Dữ liệu không hợp lệ');
@@ -69,15 +64,12 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <h2 className="text-3xl font-black text-slate-800">
-          Admin DiTravel
-        </h2>
+        <h2 className="text-3xl font-black text-slate-800">Admin DiTravel</h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:rounded-2xl sm:px-10 border border-slate-100">
           <form className="space-y-6" onSubmit={handleLogin} noValidate>
-            
             {error && (
               <div className="bg-red-50 text-red-500 p-4 rounded-xl flex items-start gap-3 text-[13px] animate-in fade-in zoom-in-95 font-medium">
                 <AlertCircle className="w-5 h-5 shrink-0" />
@@ -112,12 +104,20 @@ export default function AdminLoginPage() {
                   <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl text-[14px] text-slate-800 focus:outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff] transition-all shadow-sm"
+                  className="block w-full pl-11 pr-11 py-3 border border-slate-200 rounded-xl text-[14px] text-slate-800 focus:outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff] transition-all shadow-sm"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiển thị mật khẩu'}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -133,11 +133,6 @@ export default function AdminLoginPage() {
                   <>Đăng Nhập</>
                 )}
               </button>
-            </div>
-            
-            <div className="text-center mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-               <p className="text-[12px] font-bold text-slate-500 mb-1">Hãy đăng nhập bằng Email thật của bạn</p>
-               <p className="text-[13px] text-slate-700 font-mono">Mà bạn vừa đăng ký ban nãy</p>
             </div>
           </form>
         </div>

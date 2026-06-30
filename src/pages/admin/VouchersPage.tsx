@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Edit, Trash2, X, Tag } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Plus, Search, Edit, Trash2, X, Tag, ChevronDown } from 'lucide-react';
 import axiosClient from '../../api/axios';
 import Toast, { ToastMessage } from '../../components/admin/Toast';
 import { formatVnd, formatVndInput, formatVndInputValue, parseVndInput } from '../../utils/currency';
@@ -37,6 +37,54 @@ const emptyForm: VoucherForm = {
 const toDateInput = (value?: string | null) => value ? new Date(value).toISOString().slice(0, 16) : '';
 const fromDateInput = (value: string) => value ? new Date(value).toISOString() : null;
 const parsePercent = (value: string) => Number(String(value || '').replace(/[^\d.]/g, '') || 0);
+
+const DropdownSelect = ({ label, value, options, onChange }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt: any) => opt.value === value) || options[0];
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`w-full flex items-center justify-between border rounded-lg p-3 text-[14px] outline-none transition-colors bg-white ${isOpen ? 'border-slate-400' : 'border-slate-300 hover:border-slate-400'}`}
+      >
+        <span className="text-slate-800">{label}: <span className="font-bold text-[#0084ff]">{selectedOption?.label}</span></span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[220px] bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 py-2 z-50 animate-dropdown">
+          {options.map((opt: any) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2.5 text-[13px] transition-colors flex items-center gap-3 ${value === opt.value ? 'text-[#0084ff] font-bold bg-blue-50/50' : 'text-slate-700 hover:bg-slate-50'}`}
+            >
+              <span className="truncate">{opt.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function VouchersPage() {
   const [vouchers, setVouchers] = useState<any[]>([]);
@@ -239,19 +287,29 @@ export default function VouchersPage() {
             <div className="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
               <input value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} placeholder="Mã voucher" className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
               <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Tiêu đề" className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
-              <select value={form.discount_type} onChange={e => setForm({ ...form, discount_type: e.target.value as VoucherForm['discount_type'], discount_value: '' })} className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]">
-                <option value="PERCENT">Giảm theo phần trăm</option>
-                <option value="FIXED">Giảm số tiền cố định</option>
-              </select>
+              <DropdownSelect
+                label="Loại giảm"
+                value={form.discount_type}
+                options={[
+                  { value: 'PERCENT', label: 'Giảm theo phần trăm' },
+                  { value: 'FIXED', label: 'Giảm số tiền cố định' },
+                ]}
+                onChange={(value: VoucherForm['discount_type']) => setForm({ ...form, discount_type: value, discount_value: '' })}
+              />
               <input value={form.discount_value} onChange={e => setForm({ ...form, discount_value: form.discount_type === 'FIXED' ? formatVndInput(e.target.value) : e.target.value.replace(/[^\d.]/g, '') })} onBlur={() => form.discount_type === 'FIXED' && setForm(prev => ({ ...prev, discount_value: formatVndInputValue(prev.discount_value) }))} placeholder={form.discount_type === 'FIXED' ? '100.000' : '10'} className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
               <input value={form.min_order_value} onChange={e => setForm({ ...form, min_order_value: formatVndInput(e.target.value) })} onBlur={() => setForm(prev => ({ ...prev, min_order_value: formatVndInputValue(prev.min_order_value) }))} placeholder="Đơn tối thiểu" className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
               <input value={form.max_discount_value} onChange={e => setForm({ ...form, max_discount_value: formatVndInput(e.target.value) })} onBlur={() => setForm(prev => ({ ...prev, max_discount_value: formatVndInputValue(prev.max_discount_value) }))} placeholder="Giảm tối đa" className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
               <input type="number" min="0" value={form.usage_limit} onChange={e => setForm({ ...form, usage_limit: e.target.value })} placeholder="Giới hạn lượt dùng" className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
-              <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value as VoucherForm['status'] })} className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]">
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-                <option value="EXPIRED">EXPIRED</option>
-              </select>
+              <DropdownSelect
+                label="Trạng thái"
+                value={form.status}
+                options={[
+                  { value: 'ACTIVE', label: 'ACTIVE' },
+                  { value: 'INACTIVE', label: 'INACTIVE' },
+                  { value: 'EXPIRED', label: 'EXPIRED' },
+                ]}
+                onChange={(value: VoucherForm['status']) => setForm({ ...form, status: value })}
+              />
               <input type="datetime-local" value={form.start_date} onChange={e => setForm({ ...form, start_date: e.target.value })} className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
               <input type="datetime-local" value={form.end_date} onChange={e => setForm({ ...form, end_date: e.target.value })} className="border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00]" />
               <textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} placeholder="Mô tả" className="md:col-span-2 border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00] min-h-[90px]" />

@@ -104,7 +104,7 @@ export default function BannersPage() {
   const handleOpenModal = (banner?: Banner) => {
     if (banner) {
       setEditingBanner(banner);
-      setFormData({ ...banner });
+      setFormData({ ...banner, order: banner.order ?? 1 });
     } else {
       setEditingBanner(null);
       setFormData({
@@ -129,7 +129,7 @@ export default function BannersPage() {
     if (!formData.image_url?.trim()) errors.image_url = 'Vui lòng chọn hình ảnh';
     
     if (!formData.position) errors.position = 'Vui lòng chọn vị trí hiển thị';
-    if (!formData.order || formData.order < 1) errors.order = 'Thứ tự phải lớn hơn 0';
+    if (formData.order == null || formData.order < 1) errors.order = 'Thứ tự phải lớn hơn 0';
     
     if (formData.start_date && formData.end_date) {
       if (new Date(formData.end_date) < new Date(formData.start_date)) {
@@ -152,6 +152,7 @@ export default function BannersPage() {
       link: formData.link?.trim() || null,
       start_date: formData.start_date || null,
       end_date: formData.end_date || null,
+      order: Number(formData.order) > 0 ? Number(formData.order) : 1,
     };
 
     try {
@@ -522,8 +523,12 @@ export default function BannersPage() {
                     <input 
                       type="number" 
                       min="1"
-                      value={formData.order || ''}
-                      onChange={(e) => { setFormData({...formData, order: parseInt(e.target.value)}); if (formErrors.order) setFormErrors({...formErrors, order: ''}); }}
+                      value={formData.order ?? ''}
+                      onChange={(e) => {
+                        const nextOrder = e.target.value === '' ? 1 : Number(e.target.value);
+                        setFormData({ ...formData, order: Number.isFinite(nextOrder) ? nextOrder : 1 });
+                        if (formErrors.order) setFormErrors({ ...formErrors, order: '' });
+                      }}
                       className={`w-full border rounded-lg p-3 text-[14px] outline-none transition-colors ${formErrors.order ? 'border-red-500 bg-red-50/30 focus:ring-1 focus:ring-red-500' : 'border-slate-300 focus:border-black focus:ring-1 focus:ring-black'}`}
                     />
                     <p className="text-[11px] text-slate-500 mt-1.5">Số nhỏ hiển thị trước</p>
