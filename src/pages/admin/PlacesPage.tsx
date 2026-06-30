@@ -499,27 +499,40 @@ export default function PlacesPage() {
       {isConfirmOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setIsConfirmOpen(false)}></div>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative z-10 animate-in zoom-in-95 duration-200 p-6 text-center">
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertTriangle className="w-8 h-8" />
-            </div>
-            <h3 className="text-[18px] font-bold text-slate-800 mb-2">Xác nhận xóa</h3>
-            <p className="text-[14px] text-slate-500 mb-6">
-              Bạn có chắc chắn muốn xóa địa điểm <strong className="text-slate-800">{placeToDelete?.name}</strong>? Hành động này không thể hoàn tác.
-            </p>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setIsConfirmOpen(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg text-[14px] font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
-              >
-                Hủy bỏ
-              </button>
-              <button 
-                onClick={executeDelete}
-                className="flex-1 px-4 py-2.5 rounded-lg text-[14px] font-bold text-white bg-red-500 hover:bg-red-600 transition-colors shadow-sm"
-              >
-                Xóa ngay
-              </button>
+          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-md relative z-10 animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="h-1 bg-red-500" />
+            <div className="p-5">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[16px] font-bold text-slate-800">Xóa địa điểm</h3>
+                  <p className="text-[13px] text-slate-500 mt-1 leading-5">
+                    Bạn đang xóa <span className="font-semibold text-slate-800">{placeToDelete?.name}</span>.
+                    Thao tác này không thể hoàn tác và các dữ liệu liên quan có thể bị ảnh hưởng.
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-red-100 bg-red-50/70 px-3 py-2 text-[12px] text-red-700 leading-5">
+                Các tour thuộc địa điểm này cũng sẽ bị xóa.
+              </div>
+
+              <div className="mt-5 flex justify-end gap-3">
+                <button 
+                  onClick={() => setIsConfirmOpen(false)}
+                  className="px-4 py-2.5 rounded-lg text-[13px] font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  Hủy
+                </button>
+                <button 
+                  onClick={executeDelete}
+                  className="px-4 py-2.5 rounded-lg text-[13px] font-semibold text-white bg-red-500 hover:bg-red-600 transition-colors"
+                >
+                  Xóa địa điểm
+                </button>
+              </div>
             </div>
           </div>
         </div>
