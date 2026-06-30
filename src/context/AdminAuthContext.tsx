@@ -4,6 +4,7 @@ import axiosClient from '../api/axios';
 interface AdminAuthContextType {
   isAuthenticated: boolean;
   user: any;
+  isInitializing: boolean;
   login: (token: string) => Promise<any>;
   refreshUser: () => Promise<any>;
   logout: () => void;
@@ -53,10 +54,8 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   };
 
-  if (isInitializing) return null;
-
   return (
-    <AdminAuthContext.Provider value={{ isAuthenticated, user, login, refreshUser: fetchUser, logout }}>
+    <AdminAuthContext.Provider value={{ isAuthenticated, user, isInitializing, login, refreshUser: fetchUser, logout }}>
       {children}
     </AdminAuthContext.Provider>
   );
