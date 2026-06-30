@@ -81,6 +81,64 @@ const FilterDropdown = ({ icon: Icon, label, value, options, valueMap, onChange 
   );
 };
 
+const FormDropdown = ({ label, value, options, valueMap, onChange, placeholder }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedLabel = value
+    ? (valueMap ? valueMap[value] : value)
+    : placeholder;
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <label className="block text-[13px] font-bold text-slate-700 mb-2">{label} <span className="text-red-500">*</span></label>
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`w-full flex items-center justify-between border rounded-lg p-3 text-[14px] outline-none transition-colors bg-white ${isOpen ? 'border-slate-400' : 'border-slate-300 hover:border-slate-400'}`}
+      >
+        <span className={value ? 'text-slate-800' : 'text-slate-400'}>{selectedLabel}</span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 w-full min-w-[220px] bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 py-2 z-50 animate-dropdown">
+          <div className="max-h-[300px] overflow-y-auto hide-scrollbar">
+            {options?.map((opt: any) => {
+              const optValue = opt?.id || opt;
+              const optLabel = valueMap ? (valueMap[optValue] || opt?.name || opt) : (opt?.name || opt);
+              const isSelected = value === optValue;
+              return (
+                <button
+                  key={optValue}
+                  type="button"
+                  onClick={() => {
+                    onChange(isSelected ? '' : optValue);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-[13px] transition-colors flex items-center gap-3 ${isSelected ? 'text-[#0084ff] font-bold bg-blue-50/50' : 'text-slate-700 hover:bg-slate-50'}`}
+                >
+                  <span className="truncate">{optLabel}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default function PlacesPage() {
   const [places, setPlaces] = useState<any[]>([]);
   const [provinces, setProvinces] = useState<any[]>([]);
@@ -545,33 +603,22 @@ export default function PlacesPage() {
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-[13px] font-bold text-slate-700 mb-2">Thuộc Tỉnh/thành phố <span className="text-red-500">*</span></label>
-                    <select 
-                      value={modalProvinceId}
-                      onChange={(e) => setModalProvinceId(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00] focus:ring-1 focus:ring-[#ff5b00]"
-                      required
-                    >
-                      <option value="" disabled>-- Chọn Tỉnh/thành --</option>
-                      {provinces.map(p => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <FormDropdown
+                    label="Thuộc Tỉnh/thành phố"
+                    value={modalProvinceId}
+                    options={provinces}
+                    valueMap={provinces.reduce((acc, p) => ({ ...acc, [p.id]: p.name }), {})}
+                    onChange={setModalProvinceId}
+                    placeholder="-- Chọn Tỉnh/thành --"
+                  />
 
-                  <div>
-                    <label className="block text-[13px] font-bold text-slate-700 mb-2">Danh mục <span className="text-red-500">*</span></label>
-                    <select 
-                      value={modalCategory}
-                      onChange={(e) => setModalCategory(e.target.value)}
-                      className="w-full border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#ff5b00] focus:ring-1 focus:ring-[#ff5b00]"
-                      required
-                    >
-                      <option value="" disabled>-- Chọn Danh mục --</option>
-                      {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
-                  </div>
+                  <FormDropdown
+                    label="Danh mục"
+                    value={modalCategory}
+                    options={CATEGORIES}
+                    onChange={setModalCategory}
+                    placeholder="-- Chọn Danh mục --"
+                  />
 
                   <div className="md:col-span-2">
                     <label className="block text-[13px] font-bold text-slate-700 mb-2">Địa chỉ cụ thể</label>
