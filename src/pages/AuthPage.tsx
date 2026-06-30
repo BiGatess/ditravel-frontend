@@ -20,8 +20,10 @@ export default function AuthPage({ defaultType = 'login' }: { defaultType?: 'log
         className="max-w-[480px] w-full bg-white rounded-[12px] shadow-[0_5px_30px_rgba(0,0,0,0.05)] p-8 sm:p-10 border border-slate-100"
       >
         <div className="text-center mb-8">
-          <Link to="/" className="text-[#ff5b00] font-black text-3xl tracking-tighter lowercase inline-flex items-center justify-center gap-1 mb-2">
-            <Plane className="w-8 h-8 fill-current" />
+          <Link to="/" className="group text-[#ff5b00] font-black text-3xl tracking-normal lowercase inline-flex items-center justify-center gap-2 mb-2">
+            <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#ff5b00] text-white shadow-sm transition-colors group-hover:bg-[#e55300]">
+              <Plane className="h-5 w-5" strokeWidth={2.5} />
+            </span>
             ditravel
           </Link>
           <h2 className="text-xl font-bold text-[#242424]">

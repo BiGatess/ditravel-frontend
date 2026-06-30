@@ -29,8 +29,10 @@ export default function AboutPage() {
         
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto mt-10">
           <motion.div initial="hidden" animate="visible" variants={fadeIn}>
-            <div className="text-[#ff5b00] font-black text-5xl md:text-6xl tracking-tighter lowercase flex items-center justify-center gap-3 mb-6">
-              <Plane className="w-12 h-12 md:w-16 md:h-16 fill-current" />
+            <div className="text-[#ff5b00] font-black text-5xl md:text-6xl tracking-normal lowercase flex items-center justify-center gap-4 mb-6">
+              <span className="grid h-14 w-14 place-items-center rounded-lg bg-[#ff5b00] text-white shadow-lg md:h-16 md:w-16">
+                <Plane className="h-8 w-8 md:h-9 md:w-9" strokeWidth={2.5} />
+              </span>
               ditravel
             </div>
             <h1 className="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight">

@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, ShoppingCart, HelpCircle, User, LogIn, ChevronDown, X, Plane, LogOut } from 'lucide-react';
+import {
+  ChevronDown,
+  CircleHelp,
+  CircleUserRound,
+  LogIn,
+  LogOut,
+  MapPinned,
+  Menu,
+  Plane,
+  ShieldCheck,
+  ShoppingCart,
+  X,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -16,32 +28,35 @@ export default function Header() {
   }, []);
 
   const closeDestModal = () => setIsDestModalOpen(false);
+  const navIconClass = 'h-[18px] w-[18px] shrink-0';
 
   return (
     <>
       <header className="bg-white shadow-[0_2px_10px_rgba(0,0,0,0.05)] sticky top-0 z-50">
         <div className="container mx-auto max-w-[1300px] px-2 h-[60px] flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <Link to="/" className="flex items-center">
-              {/* Custom Logo Ditravel */}
-              <span className="text-[#ff5b00] font-black text-3xl tracking-tighter lowercase flex items-center gap-1">
-                <Plane className="w-8 h-8 fill-current" />
+            <Link to="/" className="group flex items-center">
+              <span className="text-[#ff5b00] font-black text-3xl tracking-normal lowercase flex items-center gap-2">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#ff5b00] text-white shadow-sm transition-colors group-hover:bg-[#e55300]">
+                  <Plane className="h-5 w-5" strokeWidth={2.5} />
+                </span>
                 ditravel
               </span>
             </Link>
             
             <button 
               onClick={() => setIsDestModalOpen(true)}
-              className="hidden md:flex items-center gap-1 text-sm text-slate-600 hover:text-[#ff5b00] transition-colors"
+              className="hidden md:flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-slate-600 hover:bg-orange-50 hover:text-[#ff5b00] transition-colors"
             >
-              Chọn điểm đến <ChevronDown className="w-3 h-3" />
+              <MapPinned className="h-[17px] w-[17px]" strokeWidth={2.2} />
+              Chọn điểm đến <ChevronDown className="w-3.5 h-3.5" strokeWidth={2.4} />
             </button>
           </div>
 
           <div className="hidden md:flex items-center gap-4 text-sm text-slate-600">
-            <Link to="/cart" className="flex items-center gap-1.5 hover:text-[#ff5b00] transition-colors">
+            <Link to="/cart" className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-orange-50 hover:text-[#ff5b00] transition-colors">
               <div className="relative inline-flex items-center">
-                <ShoppingCart className="w-4 h-4" /> 
+                <ShoppingCart className={navIconClass} strokeWidth={2.2} />
                 {cartBadgeCount > 0 && (
                   <span className="absolute -top-2.5 -right-3 bg-[#ff5b00] text-white text-[10px] font-bold rounded-full h-[16px] min-w-[16px] flex items-center justify-center">
                     {cartBadgeCount}
@@ -51,34 +66,35 @@ export default function Header() {
               <span>Giỏ hàng</span>
             </Link>
             <div className="relative group cursor-pointer">
-              <div className="flex items-center gap-1 hover:text-[#ff5b00] transition-colors">
-                <HelpCircle className="w-4 h-4" /> 
+              <div className="flex items-center gap-1.5 rounded-md px-2 py-1.5 hover:bg-orange-50 hover:text-[#ff5b00] transition-colors">
+                <CircleHelp className={navIconClass} strokeWidth={2.2} />
                 <span>Hỗ trợ</span> 
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="w-3.5 h-3.5" strokeWidth={2.4} />
               </div>
             </div>
             <div className="flex items-center gap-4 border-l border-slate-200 pl-6">
               {isAuthenticated ? (
                 <div className="flex items-center gap-4">
                   <Link to="/profile" className="flex items-center gap-1.5 font-medium hover:text-[#ff5b00] transition-colors">
-                    <User className="w-4 h-4" /> {user?.full_name || user?.email}
+                    <CircleUserRound className={navIconClass} strokeWidth={2.2} /> {user?.full_name || user?.email}
                   </Link>
                   {user?.user_type === 'ADMIN' && (
-                    <Link to="/admin" className="text-sm font-medium hover:text-[#ff5b00] transition-colors text-blue-600">
+                    <Link to="/admin" className="flex items-center gap-1.5 text-sm font-medium hover:text-[#ff5b00] transition-colors text-blue-600">
+                      <ShieldCheck className={navIconClass} strokeWidth={2.2} />
                       Quản trị
                     </Link>
                   )}
                   <button onClick={logout} className="flex items-center gap-1.5 hover:text-[#ff5b00] transition-colors">
-                    <LogOut className="w-4 h-4" /> Đăng xuất
+                    <LogOut className={navIconClass} strokeWidth={2.2} /> Đăng xuất
                   </button>
                 </div>
               ) : (
                 <>
                   <Link to="/register" className="flex items-center gap-1.5 hover:text-[#ff5b00] transition-colors">
-                    <User className="w-4 h-4" /> Đăng ký
+                    <CircleUserRound className={navIconClass} strokeWidth={2.2} /> Đăng ký
                   </Link>
                   <Link to="/login" className="flex items-center gap-1.5 hover:text-[#ff5b00] transition-colors">
-                    <LogIn className="w-4 h-4" /> Đăng nhập
+                    <LogIn className={navIconClass} strokeWidth={2.2} /> Đăng nhập
                   </Link>
                 </>
               )}
@@ -86,16 +102,16 @@ export default function Header() {
           </div>
           
           <div className="flex items-center gap-4 md:hidden">
-            <Link to="/cart" className="p-2 text-slate-600 relative">
-              <ShoppingCart className="w-6 h-6" />
+            <Link to="/cart" className="grid h-10 w-10 place-items-center rounded-lg bg-slate-100 text-slate-700 relative hover:bg-orange-50 hover:text-[#ff5b00] transition-colors">
+              <ShoppingCart className="h-5 w-5" strokeWidth={2.25} />
               {cartBadgeCount > 0 && (
                 <span className="absolute top-1 right-1 bg-[#ff5b00] text-white text-[10px] font-bold rounded-full h-[16px] min-w-[16px] flex items-center justify-center px-1">
                   {cartBadgeCount}
                 </span>
               )}
             </Link>
-            <button className="p-2 text-slate-600">
-              <Menu className="w-6 h-6" />
+            <button className="grid h-10 w-10 place-items-center rounded-lg bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-[#ff5b00] transition-colors" aria-label="Mở menu">
+              <Menu className="h-5 w-5" strokeWidth={2.25} />
             </button>
           </div>
         </div>

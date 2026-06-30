@@ -58,8 +58,10 @@ export default function Footer() {
       <footer className="bg-[#242424] text-slate-400 py-6 text-sm">
         <div className="container mx-auto max-w-[1300px] px-2 grid grid-cols-1 lg:grid-cols-4 gap-5">
           <div className="lg:col-span-1 pr-4">
-            <div className="text-[#ff5b00] font-black text-3xl tracking-tighter lowercase flex items-center gap-1 mb-4">
-              <Plane className="w-8 h-8 fill-current" />
+            <div className="text-[#ff5b00] font-black text-3xl tracking-normal lowercase flex items-center gap-2 mb-4">
+              <span className="grid h-9 w-9 place-items-center rounded-lg bg-[#ff5b00] text-white">
+                <Plane className="h-5 w-5" strokeWidth={2.5} />
+              </span>
               ditravel
             </div>
             <p className="mb-6 text-[13px] leading-relaxed">

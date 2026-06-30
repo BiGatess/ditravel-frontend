@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Search, Globe, LogOut } from 'lucide-react';
+import { Bell, ExternalLink, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
@@ -31,12 +31,12 @@ export default function AdminHeader() {
       </div>
       
       <div className="flex items-center gap-3">
-        <Link to="/" target="_blank" className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 text-[12px] font-bold rounded-full transition-colors mr-1 group">
-          <Globe className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#ff5b00] transition-colors" />
+        <Link to="/" target="_blank" className="hidden sm:flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-2 text-[12px] font-bold text-slate-700 transition-colors hover:bg-orange-50 hover:text-[#ff5b00] group">
+          <ExternalLink className="h-4 w-4 text-slate-400 transition-colors group-hover:text-[#ff5b00]" strokeWidth={2.2} />
           Xem website
         </Link>
-        <button className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-colors group mr-2">
-          <Bell className="w-5 h-5 group-hover:animate-bounce" />
+        <button className="relative grid h-9 w-9 place-items-center rounded-lg bg-slate-50 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800 mr-2" aria-label="Thông báo">
+          <Bell className="h-[18px] w-[18px]" strokeWidth={2.2} />
           <span className="absolute top-1 right-1.5 w-2.5 h-2.5 bg-[#ff5b00] rounded-full border-2 border-white"></span>
         </button>
         
