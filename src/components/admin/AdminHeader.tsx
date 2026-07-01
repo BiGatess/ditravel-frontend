@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, ExternalLink, LogOut } from 'lucide-react';
+import { Bell, ExternalLink, LogOut, Menu } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 
-export default function AdminHeader() {
+export default function AdminHeader({ onOpenSidebar }: { onOpenSidebar: () => void }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAdminAuth();
@@ -25,9 +25,16 @@ export default function AdminHeader() {
   };
 
   return (
-    <header className="h-[60px] bg-white border-b border-slate-200 sticky top-0 z-40 flex items-center justify-between px-6">
-      <div className="flex-1 flex items-center">
-
+    <header className="h-[60px] bg-white border-b border-slate-200 sticky top-0 z-40 flex items-center justify-between px-4 sm:px-6">
+      <div className="flex-1 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onOpenSidebar}
+          className="md:hidden grid h-9 w-9 place-items-center rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100"
+          aria-label="Mở menu"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
       </div>
       
       <div className="flex items-center gap-3">

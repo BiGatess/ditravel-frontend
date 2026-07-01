@@ -10,7 +10,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('info');
   const navigate = useNavigate();
-  const { user, isInitializing } = useAdminAuth();
+  const { user, isInitializing, logout } = useAdminAuth();
 
   useEffect(() => {
     if (!isInitializing && !user) {
@@ -28,8 +28,37 @@ export default function ProfilePage() {
           <span className="text-slate-500">Tài khoản của tôi</span>
         </div>
 
+        <div className="mb-4 grid grid-cols-2 gap-2 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setActiveTab('info')}
+            className={`rounded-xl border px-4 py-3 text-[14px] font-semibold transition-colors ${activeTab === 'info' ? 'border-[#ff5b00] bg-orange-50 text-[#ff5b00]' : 'border-slate-200 bg-white text-slate-600'}`}
+          >
+            Thông tin
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('history')}
+            className={`rounded-xl border px-4 py-3 text-[14px] font-semibold transition-colors ${activeTab === 'history' ? 'border-[#ff5b00] bg-orange-50 text-[#ff5b00]' : 'border-slate-200 bg-white text-slate-600'}`}
+          >
+            Lịch sử
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              logout();
+              navigate('/', { replace: true });
+            }}
+            className="col-span-2 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-[14px] font-semibold text-rose-600"
+          >
+            Đăng xuất
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-6">
-          <ProfileSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div className="hidden lg:block">
+            <ProfileSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+          </div>
           
           {activeTab === 'info' && <ProfileInfo />}
           {activeTab === 'history' && <BookingHistory />}

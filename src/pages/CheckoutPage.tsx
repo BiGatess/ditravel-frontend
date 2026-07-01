@@ -18,18 +18,18 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
+  const [orderCode, setOrderCode] = useState('');
   const [contactInfo, setContactInfo] = useState({ name: '', phone: '', email: '', address: '' });
   const [errors, setErrors] = useState({ name: '', phone: '', email: '' });
   const [paymentConfig, setPaymentConfig] = useState({
     enabled: true,
-    bank_code: 'VCB',
-    bank_name: 'Vietcombank',
-    account_number: '0071001060528',
-    account_name: 'CT TNHH DI VUI',
-    transfer_note_prefix: '119123',
+    bank_code: 'TPB',
+    bank_name: 'TPBank',
+    account_number: '98668397979',
+    account_name: 'THACH BAO LOC',
+    transfer_note_prefix: 'ORDER',
     qr_template: 'compact2',
     webhook_url: '',
-    webhook_secret: '',
     support_phone: '1900 0000',
     support_email: 'hotro@ditravel.com',
     description: '',
@@ -54,7 +54,7 @@ export default function CheckoutPage() {
     const fetchPaymentConfig = async () => {
       try {
         const res = await axiosClient.get(
-          '/settings/public?keys=sepay.enabled,sepay.bank_code,sepay.bank_name,sepay.account_number,sepay.account_name,sepay.transfer_note_prefix,sepay.qr_template,sepay.webhook_url,sepay.webhook_secret,sepay.support_phone,sepay.support_email,sepay.description'
+          '/settings/public?keys=sepay.enabled,sepay.bank_code,sepay.bank_name,sepay.account_number,sepay.account_name,sepay.transfer_note_prefix,sepay.qr_template,sepay.webhook_url,sepay.support_phone,sepay.support_email,sepay.description'
         );
         if (!isMounted) return;
         setPaymentConfig(prev => ({
@@ -67,7 +67,6 @@ export default function CheckoutPage() {
           transfer_note_prefix: res.data['sepay.transfer_note_prefix'] || prev.transfer_note_prefix,
           qr_template: res.data['sepay.qr_template'] || prev.qr_template,
           webhook_url: res.data['sepay.webhook_url'] || prev.webhook_url,
-          webhook_secret: res.data['sepay.webhook_secret'] || prev.webhook_secret,
           support_phone: res.data['sepay.support_phone'] || prev.support_phone,
           support_email: res.data['sepay.support_email'] || prev.support_email,
           description: res.data['sepay.description'] || prev.description,
@@ -82,7 +81,7 @@ export default function CheckoutPage() {
     };
   }, []);
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     let newErrors = { name: '', phone: '', email: '' };
     let hasError = false;
 
@@ -95,11 +94,40 @@ export default function CheckoutPage() {
     if (hasError) return;
 
     setIsProcessing(true);
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
+    try {
+      const payload = {
+        customer_name: contactInfo.name.trim(),
+        customer_phone: contactInfo.phone.trim(),
+        customer_email: contactInfo.email.trim(),
+        customer_address: contactInfo.address.trim(),
+        total_amount: totalPrice,
+        payment_method: 'SEPAY',
+        items: cartItems.map((item) => ({
+          cart_item_id: String(item.id),
+          product_name: item.name,
+          ticket_name: item.type,
+          use_date: item.date,
+          quantity: item.quantity,
+          unit_price: item.price,
+          line_total: item.price * item.quantity,
+          image: item.image,
+        })),
+        raw_checkout: {
+          source: 'checkout-page',
+          total_items: totalItems,
+        },
+      };
+
+      const res = await axiosClient.post('/orders', payload);
+      const createdOrderCode = res.data?.order_code || (res.data?.id ? `ORDER${res.data.id}` : '');
+      setOrderCode(createdOrderCode);
       setStep(3);
-    }, 3000);
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      window.alert('Không tạo được đơn hàng. Vui lòng thử lại.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const steps = [
@@ -165,6 +193,7 @@ export default function CheckoutPage() {
             contactInfo={contactInfo}
             cartItems={cartItems}
             totalPrice={totalPrice}
+            orderCode={orderCode}
             paymentConfig={paymentConfig}
           />
         )}

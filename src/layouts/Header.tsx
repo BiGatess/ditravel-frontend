@@ -18,6 +18,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 
 export default function Header() {
   const [isDestModalOpen, setIsDestModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { cartBadgeCount } = useCart();
   const { isAuthenticated, user, logout } = useAdminAuth();
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function Header() {
   }, []);
 
   const closeDestModal = () => setIsDestModalOpen(false);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
   const navIconClass = 'h-[18px] w-[18px] shrink-0';
 
   return (
@@ -117,12 +119,117 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            <button className="grid h-10 w-10 place-items-center rounded-lg bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-[#ff5b00] transition-colors" aria-label="Mở menu">
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="grid h-10 w-10 place-items-center rounded-lg bg-slate-100 text-slate-700 hover:bg-orange-50 hover:text-[#ff5b00] transition-colors"
+              aria-label="Mở menu"
+            >
               <Menu className="h-5 w-5" strokeWidth={2.25} />
             </button>
           </div>
         </div>
       </header>
+
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[110] md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50"
+            aria-label="Đóng menu"
+            onClick={closeMobileMenu}
+          />
+          <div className="absolute right-0 top-0 flex h-full w-[88%] max-w-[360px] flex-col overflow-y-auto bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4">
+              <div>
+                <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">DiTravel</div>
+                <div className="text-[16px] font-bold text-slate-800">Menu nhanh</div>
+              </div>
+              <button
+                type="button"
+                onClick={closeMobileMenu}
+                className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"
+                aria-label="Đóng menu"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="border-b border-slate-100 px-4 py-4">
+              <button
+                onClick={() => {
+                  closeMobileMenu();
+                  setIsDestModalOpen(true);
+                }}
+                className="flex w-full items-center justify-between rounded-xl bg-orange-50 px-4 py-3 text-left text-[14px] font-semibold text-[#ff5b00]"
+              >
+                Chọn điểm đến
+                <ChevronDown className="h-4 w-4" />
+              </button>
+            </div>
+
+            <nav className="flex-1 px-4 py-4">
+              <div className="space-y-2">
+                <Link to="/cart" onClick={closeMobileMenu} className="flex items-center justify-between rounded-xl border border-slate-200 px-4 py-3 text-[14px] font-medium text-slate-700">
+                  <span className="flex items-center gap-3">
+                    <ShoppingCart className={navIconClass} strokeWidth={2.2} />
+                    Giỏ hàng
+                  </span>
+                  {cartBadgeCount > 0 && <span className="rounded-full bg-[#ff5b00] px-2 py-0.5 text-[11px] font-bold text-white">{cartBadgeCount}</span>}
+                </Link>
+
+                <Link to="/search" onClick={closeMobileMenu} className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-[14px] font-medium text-slate-700">
+                  <CircleHelp className={navIconClass} strokeWidth={2.2} />
+                  Tìm kiếm tour / vé
+                </Link>
+
+                <Link to="/help" onClick={closeMobileMenu} className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-[14px] font-medium text-slate-700">
+                  <CircleHelp className={navIconClass} strokeWidth={2.2} />
+                  Hỗ trợ khách hàng
+                </Link>
+              </div>
+
+              <div className="mt-5 border-t border-slate-100 pt-5">
+                {isAuthenticated ? (
+                  <div className="space-y-2">
+                    <Link to="/profile" onClick={closeMobileMenu} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3 text-[14px] font-semibold text-slate-800">
+                      <CircleUserRound className={navIconClass} strokeWidth={2.2} />
+                      {user?.full_name || user?.email || 'Tài khoản của tôi'}
+                    </Link>
+                    {user?.user_type === 'ADMIN' && (
+                      <Link to="/admin" onClick={closeMobileMenu} className="flex items-center gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-[14px] font-semibold text-blue-700">
+                        <ShieldCheck className={navIconClass} strokeWidth={2.2} />
+                        Quản trị
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        closeMobileMenu();
+                        logout();
+                        navigate('/', { replace: true });
+                      }}
+                      className="flex w-full items-center gap-3 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-left text-[14px] font-semibold text-rose-600"
+                    >
+                      <LogOut className={navIconClass} strokeWidth={2.2} />
+                      Đăng xuất
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Link to="/login" onClick={closeMobileMenu} className="flex items-center justify-center gap-2 rounded-xl bg-[#0084ff] px-4 py-3 text-[14px] font-semibold text-white">
+                      <LogIn className={navIconClass} strokeWidth={2.2} />
+                      Đăng nhập
+                    </Link>
+                    <Link to="/register" onClick={closeMobileMenu} className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-[14px] font-semibold text-slate-700">
+                      <CircleUserRound className={navIconClass} strokeWidth={2.2} />
+                      Đăng ký
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
 
       {/* Destination Modal */}
       {isDestModalOpen && (

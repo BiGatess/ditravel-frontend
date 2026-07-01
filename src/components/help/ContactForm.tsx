@@ -66,7 +66,7 @@ export default function ContactForm() {
               value={formData.orderId}
               onChange={(e) => setFormData({...formData, orderId: e.target.value})}
               className="w-full border border-slate-300 rounded-lg p-3 text-[14px] outline-none focus:border-[#0084ff] focus:ring-1 focus:ring-[#0084ff]"
-              placeholder="VD: DVT-119123"
+              placeholder="VD: ORDER12345"
             />
           </div>
 

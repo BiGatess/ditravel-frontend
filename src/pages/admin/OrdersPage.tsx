@@ -3,6 +3,7 @@ import {
   Search, Calendar, Filter, MoreVertical, Eye, Download, X, 
   Map, Ticket, CheckCircle, Clock, XCircle, FileText, ChevronLeft, ChevronRight, User, Phone, Mail, ChevronDown
 } from 'lucide-react';
+import axiosClient from '../../api/axios';
 import DateRangePicker from '../../components/admin/DateRangePicker';
 import Toast, { ToastMessage, ToastType } from '../../components/admin/Toast';
 
@@ -13,6 +14,58 @@ const ORDER_STATUSES = [
   { value: 'completed', label: 'Đã hoàn thành', color: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
   { value: 'cancelled', label: 'Đã hủy', color: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
 ];
+
+const moneyFormatter = new Intl.NumberFormat('vi-VN');
+
+const formatMoney = (value: unknown) => {
+  const amount = Number(value || 0);
+  return `${moneyFormatter.format(Number.isFinite(amount) ? amount : 0)} đ`;
+};
+
+const formatDateTime = (value: string | null | undefined) => {
+  if (!value) return '-';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  const time = date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  const datePart = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+  return `${time} ${datePart}`;
+};
+
+const normalizeStatus = (status: string | undefined, paymentStatus: string | undefined) => {
+  const normalized = String(status || paymentStatus || 'PENDING').toUpperCase();
+  if (normalized === 'PAID') return 'paid';
+  if (normalized === 'CONFIRMED' || normalized === 'COMPLETED') return 'completed';
+  if (normalized === 'CANCELLED') return 'cancelled';
+  return 'pending';
+};
+
+const mapOrder = (order: any) => {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const firstItem = items[0] || {};
+  const quantity = items.reduce((sum: number, item: any) => sum + Number(item?.quantity || 0), 0) || 1;
+  const orderDate = formatDateTime(order.paid_at || order.created_at);
+
+  return {
+    id: order.order_code,
+    bookingDate: orderDate,
+    customer: {
+      name: order.customer_name || '',
+      phone: order.customer_phone || '',
+      email: order.customer_email || '',
+      avatarBg: 'bg-orange-100 text-[#ff5b00]',
+    },
+    product: {
+      type: 'tour',
+      name: firstItem.product_name || order.order_code,
+      quantity,
+    },
+    useDate: firstItem.use_date || '-',
+    price: formatMoney(order.total_amount),
+    status: normalizeStatus(order.status, order.payment_status),
+    paymentMethod: order.payment_method || 'SEPAY',
+    source: order,
+  };
+};
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -39,6 +92,25 @@ export default function OrdersPage() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const [toastMessage, setToastMessage] = useState<ToastMessage | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadOrders = async () => {
+      try {
+        const res = await axiosClient.get('/orders?limit=200');
+        if (!mounted) return;
+        setOrders((res.data || []).map(mapOrder));
+      } catch (error) {
+        console.error('Failed to load orders:', error);
+        if (mounted) setOrders([]);
+      }
+    };
+
+    loadOrders();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleUpdateSubmit = () => {
     if (selectedOrder) {
@@ -76,9 +148,22 @@ export default function OrdersPage() {
     return ORDER_STATUSES.find(s => s.value === statusValue) || ORDER_STATUSES[0];
   };
 
-  const handleUpdateStatus = (orderId: string, newStatus: string) => {
+  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
     setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
     setSelectedOrder((prev: any) => prev && prev.id === orderId ? { ...prev, status: newStatus } : prev);
+
+    try {
+      await axiosClient.patch(`/orders/${orderId}/status`, {
+        status: newStatus.toUpperCase(),
+        payment_status: newStatus === 'paid' ? 'PAID' : undefined,
+      });
+    } catch (error) {
+      console.error('Failed to update order status:', error);
+      setToastMessage({
+        title: 'Lỗi cập nhật',
+        message: 'Không thể cập nhật trạng thái đơn hàng.'
+      });
+    }
   };
 
   // Base filtered orders (excluding tab filter)

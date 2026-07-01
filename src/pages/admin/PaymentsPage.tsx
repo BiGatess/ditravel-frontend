@@ -12,7 +12,6 @@ type PaymentConfig = {
   transfer_note_prefix: string;
   qr_template: string;
   webhook_url: string;
-  webhook_secret: string;
   support_phone: string;
   support_email: string;
   description: string;
@@ -20,14 +19,13 @@ type PaymentConfig = {
 
 const DEFAULT_CONFIG: PaymentConfig = {
   enabled: true,
-  bank_code: 'VCB',
-  bank_name: 'Vietcombank',
-  account_number: '0071001060528',
-  account_name: 'CT TNHH DI VUI',
-  transfer_note_prefix: '119123',
+  bank_code: 'TPB',
+  bank_name: 'TPBank',
+  account_number: '98668397979',
+  account_name: 'THACH BAO LOC',
+  transfer_note_prefix: 'ORDER',
   qr_template: 'compact2',
   webhook_url: '',
-  webhook_secret: '',
   support_phone: '1900 0000',
   support_email: 'hotro@ditravel.com',
   description: 'Cấu hình SePay / VietQR dùng cho checkout và xác nhận thanh toán.',
@@ -63,7 +61,7 @@ export default function PaymentsPage() {
     const bankCode = form.bank_code || DEFAULT_CONFIG.bank_code;
     const accountNumber = form.account_number || DEFAULT_CONFIG.account_number;
     const template = form.qr_template || DEFAULT_CONFIG.qr_template;
-    const note = `${form.transfer_note_prefix || DEFAULT_CONFIG.transfer_note_prefix} Nguyen Van A`;
+    const note = `${form.transfer_note_prefix || DEFAULT_CONFIG.transfer_note_prefix}12345`;
     return `https://img.vietqr.io/image/${bankCode}-${accountNumber}-${template}.png?amount=150000&addInfo=${encodeURIComponent(note)}&accountName=${encodeURIComponent(form.account_name || DEFAULT_CONFIG.account_name)}`;
   }, [form]);
 
@@ -110,7 +108,6 @@ export default function PaymentsPage() {
         axiosClient.put('/settings/sepay.transfer_note_prefix', { value: form.transfer_note_prefix.trim(), description: 'Tiền tố nội dung chuyển khoản' }),
         axiosClient.put('/settings/sepay.qr_template', { value: form.qr_template.trim() || 'compact2', description: 'Template VietQR' }),
         axiosClient.put('/settings/sepay.webhook_url', { value: form.webhook_url.trim(), description: 'Webhook URL từ SePay' }),
-        axiosClient.put('/settings/sepay.webhook_secret', { value: form.webhook_secret.trim(), description: 'Webhook secret từ SePay' }),
         axiosClient.put('/settings/sepay.support_phone', { value: form.support_phone.trim(), description: 'Số hotline hỗ trợ' }),
         axiosClient.put('/settings/sepay.support_email', { value: form.support_email.trim(), description: 'Email hỗ trợ' }),
         axiosClient.put('/settings/sepay.description', { value: form.description.trim(), description: 'Mô tả cấu hình thanh toán' }),
@@ -165,27 +162,27 @@ export default function PaymentsPage() {
 
               <label className="space-y-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Mã ngân hàng</span>
-                <input value={form.bank_code} onChange={(e) => handleChange('bank_code', e.target.value.toUpperCase())} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="VCB" />
+                <input value={form.bank_code} onChange={(e) => handleChange('bank_code', e.target.value.toUpperCase())} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="TPB" />
               </label>
 
               <label className="space-y-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Tên ngân hàng</span>
-                <input value={form.bank_name} onChange={(e) => handleChange('bank_name', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="Vietcombank" />
+                <input value={form.bank_name} onChange={(e) => handleChange('bank_name', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="TPBank" />
               </label>
 
               <label className="space-y-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Số tài khoản</span>
-                <input value={form.account_number} onChange={(e) => handleChange('account_number', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="0071001060528" />
+                <input value={form.account_number} onChange={(e) => handleChange('account_number', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="98668397979" />
               </label>
 
               <label className="space-y-2 md:col-span-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Tên chủ tài khoản</span>
-                <input value={form.account_name} onChange={(e) => handleChange('account_name', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="CT TNHH DI VUI" />
+                <input value={form.account_name} onChange={(e) => handleChange('account_name', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="THACH BAO LOC" />
               </label>
 
               <label className="space-y-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Tiền tố nội dung</span>
-                <input value={form.transfer_note_prefix} onChange={(e) => handleChange('transfer_note_prefix', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="119123" />
+                <input value={form.transfer_note_prefix} onChange={(e) => handleChange('transfer_note_prefix', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="ORDER" />
               </label>
 
               <label className="space-y-2">
@@ -202,7 +199,7 @@ export default function PaymentsPage() {
               </div>
               <div>
                 <h2 className="text-[16px] font-bold text-slate-800">Webhook</h2>
-                <p className="text-[13px] text-slate-500">Nếu dùng SePay thật, điền URL và secret webhook.</p>
+                <p className="text-[13px] text-slate-500">Nếu dùng SePay thật, điền URL webhook theo backend của bạn.</p>
               </div>
             </div>
 
@@ -210,10 +207,6 @@ export default function PaymentsPage() {
               <label className="space-y-2 md:col-span-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Webhook URL</span>
                 <input value={form.webhook_url} onChange={(e) => handleChange('webhook_url', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="https://your-domain.com/api/payments/sepay/webhook" />
-              </label>
-              <label className="space-y-2 md:col-span-2">
-                <span className="block text-[13px] font-semibold text-slate-700">Webhook secret</span>
-                <input value={form.webhook_secret} onChange={(e) => handleChange('webhook_secret', e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-3 text-[14px] outline-none focus:border-[#ff5b00]" placeholder="secret-key" />
               </label>
               <label className="space-y-2">
                 <span className="block text-[13px] font-semibold text-slate-700">Hotline</span>
@@ -262,7 +255,7 @@ export default function PaymentsPage() {
                 </div>
                 <div className="flex justify-between gap-3">
                   <span>Nội dung mẫu</span>
-                  <span className="font-semibold text-slate-800">{form.transfer_note_prefix || DEFAULT_CONFIG.transfer_note_prefix} + tên khách</span>
+                  <span className="font-semibold text-slate-800">{form.transfer_note_prefix || DEFAULT_CONFIG.transfer_note_prefix} + orderId</span>
                 </div>
               </div>
             </div>

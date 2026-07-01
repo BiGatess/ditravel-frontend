@@ -18,7 +18,12 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-export default function AdminSidebar() {
+type AdminSidebarProps = {
+  isOpen: boolean;
+  onClose: () => void;
+};
+
+export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
   const navItems = [
     { title: 'Dashboard', path: '/admin/dashboard', icon: LayoutDashboard },
     { title: 'Quản lý Đơn hàng', path: '/admin/orders', icon: ShoppingBag },
@@ -37,9 +42,9 @@ export default function AdminSidebar() {
   ];
 
   return (
-    <aside className="w-[260px] bg-slate-900 text-slate-300 h-screen fixed top-0 left-0 flex flex-col z-50 overflow-y-auto">
+    <aside className={`fixed top-0 left-0 z-50 flex h-screen w-[260px] flex-col overflow-y-auto bg-slate-900 text-slate-300 transition-transform duration-200 md:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
       <div className="h-[60px] px-5 flex items-center bg-slate-950 sticky top-0 z-10 shrink-0">
-        <NavLink to="/admin/dashboard" className="group flex items-center gap-3 text-white">
+        <NavLink to="/admin/dashboard" onClick={onClose} className="group flex items-center gap-3 text-white">
           <span className="grid h-10 w-10 place-items-center rounded-lg bg-[#ff5b00] text-white shadow-[0_8px_20px_rgba(255,91,0,0.24)] transition-colors group-hover:bg-[#e55300]">
             <Plane className="h-5 w-5" strokeWidth={2.5} />
           </span>
@@ -55,6 +60,7 @@ export default function AdminSidebar() {
               <li key={index}>
                 <NavLink
                   to={item.path}
+                  onClick={onClose}
                   className={({ isActive }) => 
                     `group flex items-center gap-3 px-2.5 py-2 rounded-lg transition-all text-[14px] font-medium
                     ${isActive ? 'bg-[#ff5b00] text-white shadow-sm' : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'}`

@@ -4,6 +4,7 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 
 export default function AdminProtectedRoute() {
   const { isAuthenticated, user, isInitializing } = useAdminAuth();
+  const userType = String(user?.user_type || user?.userType || '').toUpperCase();
 
   if (isInitializing) {
     return (
@@ -21,7 +22,7 @@ export default function AdminProtectedRoute() {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (user && user.user_type !== 'ADMIN') {
+  if (user && userType !== 'ADMIN') {
     // Redirect standard users to home page
     return <Navigate to="/" replace />;
   }

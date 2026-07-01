@@ -284,10 +284,6 @@ export default function HomePage() {
           <p className="text-base md:text-[18px] text-white font-medium mb-1 drop-shadow">
             {displayHero[currentHeroIdx]?.description || 'Dịch vụ chính hãng - An tâm đặt vé'}
           </p>
-          {/* <p className="text-xs md:text-[13px] text-white/90 mb-8 drop-shadow font-medium">
-            Thanh toán với tài khoản Công Ty TNHH Ditravel - 0071001060528 - Vietcombank
-          </p> */}
-          
           <button 
             onClick={() => window.dispatchEvent(new CustomEvent('open-dest-modal'))}
             className="bg-[#ff5b00] hover:bg-[#e05000] text-white font-bold py-3 px-8 rounded-[4px] text-sm uppercase flex items-center gap-2 mx-auto shadow-lg transition-transform hover:scale-105 duration-300"

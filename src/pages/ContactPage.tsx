@@ -88,7 +88,7 @@ export default function ContactPage() {
             initial={{ opacity: 0, y: -20, x: '-50%' }} 
             animate={{ opacity: 1, y: 0, x: '-50%' }} 
             exit={{ opacity: 0, y: -20, x: '-50%' }}
-            className="fixed top-8 left-1/2 z-50 bg-white px-6 py-4 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-emerald-100 flex items-start gap-3 min-w-[320px]"
+            className="fixed top-4 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-[520px] -translate-x-1/2 bg-white px-4 py-3 md:px-6 md:py-4 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.12)] border border-emerald-100 flex items-start gap-3"
           >
             <CheckCircle2 className="w-6 h-6 text-emerald-500 shrink-0" />
             <div>

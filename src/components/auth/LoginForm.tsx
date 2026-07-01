@@ -54,9 +54,10 @@ export default function LoginForm() {
         }
       });
       
-      const currentUser = await login(res.data.access_token);
+      const currentUser = await login(res.data.access_token, res.data.user);
       setIsSuccess(true);
-      navigate(currentUser?.user_type === 'ADMIN' ? '/admin/dashboard' : '/', { replace: true });
+      const userType = String(currentUser?.user_type || currentUser?.userType || '').toUpperCase();
+      navigate(userType === 'ADMIN' ? '/admin/dashboard' : '/', { replace: true });
     } catch (err: any) {
       if (err.response && err.response.data && err.response.data.detail) {
         setApiError(err.response.data.detail);

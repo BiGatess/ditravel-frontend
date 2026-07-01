@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Filter, X } from 'lucide-react';
 import SearchFilters from '../components/search/SearchFilters';
 import SearchResults from '../components/search/SearchResults';
 import axiosClient from '../api/axios';
@@ -11,6 +12,7 @@ export default function SearchPage() {
   const [sortBy, setSortBy] = useState<string>('ĐIVUI ĐỀ XUẤT');
   const [selectedCountry, setSelectedCountry] = useState<string>('Việt Nam');
   const [selectedProvince, setSelectedProvince] = useState<string>('Tất cả');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const [products, setProducts] = useState<any[]>([]);
   const [places, setPlaces] = useState<any[]>([]);
@@ -123,8 +125,8 @@ export default function SearchPage() {
   return (
     <div className="bg-white min-h-screen font-sans pb-16">
       <div className="container mx-auto max-w-[1300px] px-2 pt-8 pb-6">
-        <div className="flex items-end gap-3 mb-3">
-          <h1 className="text-[28px] font-bold text-[#242424] leading-none">Các hoạt động vui chơi tại {selectedProvince === 'Tất cả' ? 'Việt Nam' : selectedProvince}</h1>
+        <div className="flex flex-col sm:flex-row sm:items-end gap-2 sm:gap-3 mb-3">
+          <h1 className="text-[22px] sm:text-[28px] font-bold text-[#242424] leading-tight">Các hoạt động vui chơi tại {selectedProvince === 'Tất cả' ? 'Việt Nam' : selectedProvince}</h1>
           <span className="text-[13px] text-slate-500 mb-0.5">Tổng cộng {filteredAndSortedProducts.length} hoạt động</span>
         </div>
         
@@ -140,19 +142,37 @@ export default function SearchPage() {
           )}
         </div>
 
+        <div className="mb-4 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen(true)}
+            className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-semibold text-slate-700 shadow-sm"
+          >
+            <span className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-[#ff5b00]" />
+              Bộ lọc
+            </span>
+            <span className="text-[12px] font-medium text-slate-500">
+              {selectedCategories.length + selectedSpots.length + (selectedProvince !== 'Tất cả' ? 1 : 0)} đã chọn
+            </span>
+          </button>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-4">
-          <SearchFilters 
-            categories={computedCategories}
-            touristSpots={computedSpots}
-            selectedCountry={selectedCountry}
-            setSelectedCountry={setSelectedCountry}
-            selectedProvince={selectedProvince}
-            setSelectedProvince={setSelectedProvince}
-            selectedCategories={selectedCategories}
-            toggleCategory={toggleCategory}
-            selectedSpots={selectedSpots}
-            toggleSpot={toggleSpot}
-          />
+          <div className="hidden lg:block">
+            <SearchFilters 
+              categories={computedCategories}
+              touristSpots={computedSpots}
+              selectedCountry={selectedCountry}
+              setSelectedCountry={setSelectedCountry}
+              selectedProvince={selectedProvince}
+              setSelectedProvince={setSelectedProvince}
+              selectedCategories={selectedCategories}
+              toggleCategory={toggleCategory}
+              selectedSpots={selectedSpots}
+              toggleSpot={toggleSpot}
+            />
+          </div>
 
           {isLoading ? (
             <div className="flex-1 flex justify-center items-center py-20">
@@ -167,6 +187,45 @@ export default function SearchPage() {
           )}
         </div>
       </div>
+
+      {isFilterOpen && (
+        <div className="fixed inset-0 z-[120] lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setIsFilterOpen(false)}
+            aria-label="Đóng bộ lọc"
+          />
+          <div className="absolute left-0 top-0 h-full w-[90%] max-w-[380px] overflow-y-auto bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-4">
+              <div>
+                <div className="text-[12px] font-semibold uppercase tracking-wide text-slate-500">Bộ lọc</div>
+                <div className="text-[16px] font-bold text-slate-800">Chọn điều kiện</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFilterOpen(false)}
+                className="grid h-9 w-9 place-items-center rounded-lg bg-slate-100 text-slate-600"
+                aria-label="Đóng bộ lọc"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <SearchFilters 
+              categories={computedCategories}
+              touristSpots={computedSpots}
+              selectedCountry={selectedCountry}
+              setSelectedCountry={setSelectedCountry}
+              selectedProvince={selectedProvince}
+              setSelectedProvince={setSelectedProvince}
+              selectedCategories={selectedCategories}
+              toggleCategory={toggleCategory}
+              selectedSpots={selectedSpots}
+              toggleSpot={toggleSpot}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

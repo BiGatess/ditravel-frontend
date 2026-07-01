@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { Lock, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import axiosClient from '../../api/axios';
+
+const isAdminUser = (user: any) => String(user?.user_type || user?.userType || '').toUpperCase() === 'ADMIN';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -11,7 +13,13 @@ export default function AdminLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
-  const { login, logout } = useAdminAuth();
+  const { login, logout, isAuthenticated, user } = useAdminAuth();
+
+  useEffect(() => {
+    if (isAuthenticated && isAdminUser(user)) {
+      navigate('/admin/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate, user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +43,9 @@ export default function AdminLoginPage() {
         },
       });
 
-      const token = response.data.access_token;
-      const currentUser = await login(token);
+      const currentUser = await login(response.data.access_token, response.data.user);
 
-      if (!currentUser || currentUser.user_type !== 'ADMIN') {
+      if (!currentUser || !isAdminUser(currentUser)) {
         logout();
         setError('Tài khoản này chưa được cấp quyền quản trị.');
         return;
@@ -62,7 +69,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <h2 className="text-3xl font-black text-slate-800">Admin DiTravel</h2>
       </div>
@@ -130,7 +137,7 @@ export default function AdminLoginPage() {
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <>Đăng Nhập</>
+                  <>Đăng nhập</>
                 )}
               </button>
             </div>

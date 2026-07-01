@@ -5,7 +5,7 @@ interface AdminAuthContextType {
   isAuthenticated: boolean;
   user: any;
   isInitializing: boolean;
-  login: (token: string) => Promise<any>;
+  login: (token: string, nextUser?: any) => Promise<any>;
   refreshUser: () => Promise<any>;
   logout: () => void;
 }
@@ -42,9 +42,15 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (token: string) => {
+  const login = async (token: string, nextUser?: any) => {
     localStorage.setItem('admin_token', token);
-    setUser(null); // Clear old user immediately
+    if (nextUser) {
+      setUser(nextUser);
+      setIsAuthenticated(true);
+      setIsInitializing(false);
+      return nextUser;
+    }
+    setUser(null);
     return await fetchUser();
   };
 
